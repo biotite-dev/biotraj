@@ -97,6 +97,8 @@ dependencies = ["hatch-cython"]
 [tool.hatch.build.targets.wheel.hooks.cython.options]
 include_numpy = true
 compile_py = false
+# include .h or .cpp directories
+includes = ["src/biotraj/xtc"]
 
 [build-system]
 requires = [
