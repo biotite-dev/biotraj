@@ -1,2 +1,3 @@
 trr.c
 xtc.c
+*.so
