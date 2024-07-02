@@ -98,7 +98,7 @@ dependencies = ["hatch-cython"]
 include_numpy = true
 compile_py = false
 # include .h or .cpp directories
-includes = ["src/biotraj/xtc/src", "src/biotraj/xtc/include"]
+#includes = ["src/biotraj/formats/xtc/src", "src/biotraj/xtc/include"]
 
 [build-system]
 requires = [

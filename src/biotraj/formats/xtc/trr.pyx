@@ -28,7 +28,7 @@
 
 import os
 import warnings
-import xdrlib
+import biotraj.formats.xtc.xdrlib
 
 import numpy as np
 
@@ -36,12 +36,12 @@ cimport numpy as np
 
 np.import_array()
 
-from mdtraj.formats.registry import FormatRegistry
-from mdtraj.utils import cast_indices, ensure_type, in_units_of
+from biotraj.formats.registry import FormatRegistry
+from biotraj.utils import cast_indices, ensure_type, in_units_of
 
-cimport xdrlib
+cimport biotraj.formats.xtc.xdrlib
 
-cimport trrlib
+cimport biotraj.formats.xtc.trrlib
 from libc.stdio cimport SEEK_CUR, SEEK_SET
 
 ctypedef np.npy_int64   int64_t
@@ -113,7 +113,7 @@ def load_trr(filename, top=None, stride=None, atom_indices=None, frame=None):
     >>> import mdtraj as md                                        # doctest: +SKIP
     >>> traj = md.load_trr('output.trr', top='topology.pdb')       # doctest: +SKIP
     >>> print traj                                                 # doctest: +SKIP
-    <mdtraj.Trajectory with 500 frames, 423 atoms at 0x110740a90>  # doctest: +SKIP
+    <biotraj.Trajectory with 500 frames, 423 atoms at 0x110740a90>  # doctest: +SKIP
 
     Returns
     -------
@@ -122,13 +122,13 @@ def load_trr(filename, top=None, stride=None, atom_indices=None, frame=None):
 
     See Also
     --------
-    mdtraj.TRRTrajectoryFile :  Low level interface to TRR files
+    biotraj.TRRTrajectoryFile :  Low level interface to TRR files
     """
     # we make it not required in the signature, but required here. although this
     # is a little wierd, its good because this function is usually called by a
     # dispatch from load(), where top comes from **kwargs. So if its not supplied
     # we want to give the user an informative error message
-    from mdtraj.core.trajectory import Trajectory, _parse_topology
+    from biotraj.core.trajectory import Trajectory, _parse_topology
     if top is None:
         raise ValueError('"top" argument is required for load_trr')
 
@@ -191,7 +191,7 @@ cdef class TRRTrajectoryFile(object):
 
     See Also
     --------
-    mdtraj.load_trr : High-level wrapper that returns a ``md.Trajectory``
+    biotraj.load_trr : High-level wrapper that returns a ``md.Trajectory``
     """
     cdef trrlib.XDRFILE* fh
     cdef str filename
@@ -340,7 +340,7 @@ cdef class TRRTrajectoryFile(object):
         read : Returns the raw data from the file
         """
 
-        from mdtraj.core.trajectory import Trajectory
+        from biotraj.core.trajectory import Trajectory
         if atom_indices is not None:
             topology = topology.subset(atom_indices)
 

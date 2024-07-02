@@ -27,7 +27,7 @@
 ###############################################################################
 import os
 import warnings
-import xdrlib
+import biotraj.formats.xtc.xdrlib
 
 import numpy as np
 
@@ -35,10 +35,10 @@ cimport numpy as np
 
 np.import_array()
 
-from mdtraj.formats.registry import FormatRegistry
-from mdtraj.utils import cast_indices, ensure_type, in_units_of
+from biotraj.formats.registry import FormatRegistry
+from biotraj.utils import cast_indices, ensure_type, in_units_of
 
-cimport xdrlib
+cimport biotraj.formats.xtc.xdrlib
 
 from libc.math cimport ceil
 from libc.stdio cimport SEEK_CUR, SEEK_SET
@@ -143,7 +143,7 @@ def load_xtc(filename, top=None, stride=None, atom_indices=None, frame=None):
     >>> import mdtraj as md
     >>> traj = md.load_xtc('output.xtc', top='topology.pdb')
     >>> print traj
-    <mdtraj.Trajectory with 500 frames, 423 atoms at 0x110740a90>
+    <biotraj.Trajectory with 500 frames, 423 atoms at 0x110740a90>
 
     Returns
     -------
@@ -152,9 +152,9 @@ def load_xtc(filename, top=None, stride=None, atom_indices=None, frame=None):
 
     See Also
     --------
-    mdtraj.XTCTrajectoryFile :  Low level interface to XTC files
+    biotraj.XTCTrajectoryFile :  Low level interface to XTC files
     """
-    from mdtraj.core.trajectory import _parse_topology
+    from biotraj.core.trajectory import _parse_topology
     if top is None:
         raise ValueError('"top" argument is required for load_xtc')
 
@@ -220,7 +220,7 @@ cdef class XTCTrajectoryFile(object):
 
     See Also
     --------
-    mdtraj.load_xtc : High-level wrapper that returns a ``md.Trajectory``
+    biotraj.load_xtc : High-level wrapper that returns a ``md.Trajectory``
     """
     cdef xdrlib.XDRFILE* fh
     cdef str filename
@@ -332,7 +332,7 @@ cdef class XTCTrajectoryFile(object):
         --------
         read : Returns the raw data from the file
         """
-        from mdtraj.core.trajectory import Trajectory
+        from biotraj.core.trajectory import Trajectory
         if atom_indices is not None:
             topology = topology.subset(atom_indices)
 
