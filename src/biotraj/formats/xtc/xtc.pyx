@@ -27,7 +27,7 @@
 ###############################################################################
 import os
 import warnings
-import biotraj.formats.xtc.xdrlib
+import xdrlib
 
 import numpy as np
 
@@ -38,7 +38,7 @@ np.import_array()
 from biotraj.formats.registry import FormatRegistry
 from biotraj.utils import cast_indices, ensure_type, in_units_of
 
-cimport biotraj.formats.xtc.xdrlib
+cimport xdrlib
 
 from libc.math cimport ceil
 from libc.stdio cimport SEEK_CUR, SEEK_SET

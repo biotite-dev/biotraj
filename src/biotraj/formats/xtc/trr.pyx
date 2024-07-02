@@ -28,7 +28,7 @@
 
 import os
 import warnings
-import biotraj.formats.xtc.xdrlib
+import xdrlib
 
 import numpy as np
 
@@ -39,9 +39,9 @@ np.import_array()
 from biotraj.formats.registry import FormatRegistry
 from biotraj.utils import cast_indices, ensure_type, in_units_of
 
-cimport biotraj.formats.xtc.xdrlib
+cimport xdrlib
 
-cimport biotraj.formats.xtc.trrlib
+cimport trrlib
 from libc.stdio cimport SEEK_CUR, SEEK_SET
 
 ctypedef np.npy_int64   int64_t

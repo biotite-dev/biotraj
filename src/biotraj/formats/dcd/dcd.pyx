@@ -36,7 +36,7 @@ np.import_array()
 from biotraj.formats.registry import FormatRegistry
 from biotraj.utils import cast_indices, ensure_type, in_units_of
 
-from biotraj.formats.xtc.dcdlib cimport (
+from dcdlib cimport (
     close_file_read,
     close_file_write,
     dcd_rewind,
@@ -58,7 +58,7 @@ np.import_array()
 from biotraj.formats.registry import FormatRegistry
 from biotraj.utils import cast_indices, ensure_type, in_units_of
 
-from biotraj.formats.xtc.dcdlib cimport (
+from dcdlib cimport (
     close_file_read,
     close_file_write,
     dcd_rewind,
