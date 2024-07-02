@@ -98,7 +98,13 @@ dependencies = ["hatch-cython"]
 include_numpy = true
 compile_py = false
 # include .h or .cpp directories
-#includes = ["src/biotraj/formats/xtc/src", "src/biotraj/xtc/include"]
+includes = [
+    "src/biotraj/formats/",
+#    "src/biotraj/formats/src", "src/biotraj/formats/include"
+]
+
+[tool.hatch.metadata]
+allow-direct-references = true
 
 [build-system]
 requires = [

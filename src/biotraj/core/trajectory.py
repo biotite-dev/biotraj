@@ -29,9 +29,9 @@ from copy import deepcopy
 
 import numpy as np
 
-from biotraj.core.residue_names import _SOLVENT_TYPES
-from biotraj.core.topology import Topology
-from biotraj.formats import (
+from .residue_names import _SOLVENT_TYPES
+from .topology import Topology
+from ..formats import (
     AmberNetCDFRestartFile,
     AmberRestartFile,
     DCDTrajectoryFile,

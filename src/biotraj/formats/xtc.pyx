@@ -35,10 +35,10 @@ cimport numpy as np
 
 np.import_array()
 
-from biotraj.formats.registry import FormatRegistry
-from biotraj.utils import cast_indices, ensure_type, in_units_of
+from .registry import FormatRegistry
+from ..utils import cast_indices, ensure_type, in_units_of
 
-cimport xdrlib
+from . cimport xdrlib
 
 from libc.math cimport ceil
 from libc.stdio cimport SEEK_CUR, SEEK_SET

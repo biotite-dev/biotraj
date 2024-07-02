@@ -9,7 +9,9 @@ cdef extern from "include/dcdplugin.h":
       int nsavc
       double delta
       int nfixed
-      float *x, *y, *z
+      float *x 
+      float *y 
+      float *z
       int *freeind
       float *fixedcoords
       int reverse

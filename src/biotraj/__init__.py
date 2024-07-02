@@ -31,9 +31,9 @@ DCD, PDB, and HDF5.
 
 # silence cython related numpy warnings, see github.com/numpy/numpy/pull/432
 import numpy as _  # noqa
-from biotraj.core import element
-from biotraj.core.topology import Amide, Aromatic, Double, Single, Topology, Triple
-from biotraj.core.trajectory import (
+from .core import element
+from .core.topology import Amide, Aromatic, Double, Single, Topology, Triple
+from .core.trajectory import (
     Trajectory,
     iterload,
     join,
@@ -42,29 +42,29 @@ from biotraj.core.trajectory import (
     load_topology,
     open,
 )
-from biotraj.formats.amberrst import load_ncrestrt, load_restrt
-from biotraj.formats.arc import load_arc
-from biotraj.formats.dcd import load_dcd
+from .formats.amberrst import load_ncrestrt, load_restrt
+from .formats.arc import load_arc
+from .formats.dcd import load_dcd
 #from biotraj.formats.dtr import load_dtr, load_stk
-from biotraj.formats.hdf5 import load_hdf5
-from biotraj.formats.hoomdxml import load_hoomdxml
-from biotraj.formats.lammpstrj import load_lammpstrj
-from biotraj.formats.lh5 import load_lh5
-from biotraj.formats.mdcrd import load_mdcrd
-from biotraj.formats.mol2 import load_mol2
-from biotraj.formats.netcdf import load_netcdf
-from biotraj.formats.openmmxml import load_xml
-from biotraj.formats.pdb import load_pdb
-from biotraj.formats.prmtop import load_prmtop
-from biotraj.formats.psf import load_psf
-from biotraj.formats.registry import FormatRegistry
-from biotraj.formats.xtc import load_trr
-from biotraj.formats.xtc import load_xtc
-from biotraj.formats.xyzfile import load_xyz
+from .formats.hdf5 import load_hdf5
+from .formats.hoomdxml import load_hoomdxml
+from .formats.lammpstrj import load_lammpstrj
+from .formats.lh5 import load_lh5
+from .formats.mdcrd import load_mdcrd
+from .formats.mol2 import load_mol2
+from .formats.netcdf import load_netcdf
+from .formats.openmmxml import load_xml
+from .formats.pdb import load_pdb
+from .formats.prmtop import load_prmtop
+from .formats.psf import load_psf
+from .formats.registry import FormatRegistry
+from .formats.trr import load_trr
+from .formats.xtc import load_xtc
+from .formats.xyzfile import load_xyz
 
-from biotraj.core import element
-from biotraj.core.topology import Topology, Single, Double, Triple, Amide, Aromatic
-from biotraj.core.trajectory import *
+from .core import element
+from .core.topology import Topology, Single, Double, Triple, Amide, Aromatic
+from .core.trajectory import *
 
 __name__ = "biotraj"
 __all__ = (

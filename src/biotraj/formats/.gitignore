@@ -1,3 +1,4 @@
 trr.c
 xtc.c
+dcd.c
 *.so

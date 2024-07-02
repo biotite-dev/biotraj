@@ -33,10 +33,10 @@ import numpy as np
 cimport numpy as np
 
 np.import_array()
-from biotraj.formats.registry import FormatRegistry
-from biotraj.utils import cast_indices, ensure_type, in_units_of
+from .registry import FormatRegistry
+from ..utils import cast_indices, ensure_type, in_units_of
 
-from dcdlib cimport (
+from .dcdlib cimport (
     close_file_read,
     close_file_write,
     dcd_rewind,
@@ -55,10 +55,10 @@ import numpy as np
 cimport numpy as np
 
 np.import_array()
-from biotraj.formats.registry import FormatRegistry
-from biotraj.utils import cast_indices, ensure_type, in_units_of
+from .registry import FormatRegistry
+from ..utils import cast_indices, ensure_type, in_units_of
 
-from dcdlib cimport (
+from .dcdlib cimport (
     close_file_read,
     close_file_write,
     dcd_rewind,
