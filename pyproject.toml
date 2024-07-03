@@ -91,12 +91,28 @@ source = "vcs"
 [tool.hatch.build.hooks.vcs]
 version-file = "src/biotraj/version.py"
 
+
 [tool.hatch.build.targets.wheel.hooks.cython]
 dependencies = ["hatch-cython"]
 
 [tool.hatch.build.targets.wheel.hooks.cython.options]
 include_numpy = true
 compile_py = false
+# include .h or .cpp directories
+includes = [
+    "src/biotraj/formats/src", 
+    "src/biotraj/formats/include"
+]
+
+#[build.hooks.cython.options.files]
+#targets = [
+#  "src/biotraj/formats/dcd.pyx",
+#  "src/biotraj/formats/trr.pyx",
+#  "src/biotraj/formats/xtc.pyx"
+#]
+
+[tool.hatch.metadata]
+allow-direct-references = true
 
 [build-system]
 requires = [
