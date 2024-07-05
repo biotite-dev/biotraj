@@ -98,9 +98,12 @@ dependencies = ["hatch-cython"]
 [tool.hatch.build.targets.wheel.hooks.cython.options]
 include_numpy = true
 compile_py = false
+define_macros = [
+    ["NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION"],
+]
 # include .h or .cpp directories
 includes = [
-    "src/biotraj/formats/src", 
+    "src/biotraj/formats/src",
     "src/biotraj/formats/include"
 ]
 
@@ -119,7 +122,7 @@ requires = [
     "hatchling",
     "hatch-vcs == 0.4",
     "hatch-cython == 0.5",
-    "oldest-supported-numpy",
+    "numpy >= 2.0",
     "cython >= 3.0",
 ]
 build-backend = "hatchling.build"
