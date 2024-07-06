@@ -107,12 +107,26 @@ includes = [
     "src/biotraj/formats/include"
 ]
 
-#[build.hooks.cython.options.files]
-#targets = [
-#  "src/biotraj/formats/dcd.pyx",
-#  "src/biotraj/formats/trr.pyx",
-#  "src/biotraj/formats/xtc.pyx"
-#]
+[build.hooks.cython.options.files]
+targets = [
+  "src/biotraj/formats/dcd.pyx",
+  "src/biotraj/formats/trr.pyx",
+  "src/biotraj/formats/xtc.pyx"
+]
+
+compile_args = [
+#    "-msse2",
+#    "-mssse3",
+    "-Wno-unused-function",
+    "-Wno-unreachable-code",
+    "-Wno-sign-compare",
+#    "-msse4",
+    "-fopenmp",
+    "-O3",
+    "-funroll-loops",
+    "-lz",
+    "--std=c++11",
+]
 
 [tool.hatch.metadata]
 allow-direct-references = true
