@@ -153,23 +153,22 @@ def format_extensions():
 write_version_py(VERSION, ISRELEASED, "src/biotraj/version.py")
 
 metadata = dict(
-    name="mdtraj",
+    name="biotraj",
     author="Robert McGibbon",
     author_email="rmcgibbo@gmail.com",
     description=DOCLINES[0],
     long_description="\n".join(DOCLINES[2:]),
     version=__version__,
     license="LGPLv2.1+",
-    url="http://biotraj.org",
-    download_url="https://github.com/rmcgibbo/src/biotraj/releases/latest",
+#    url="http://biotraj.org",
+#    download_url="https://github.com/rmcgibbo/src/biotraj/releases/latest",
     platforms=["Linux", "Mac OS-X", "Unix", "Windows"],
     python_requires='>=3.9',
     classifiers=CLASSIFIERS.splitlines(),
-    packages=find_packages(),
     cmdclass={"build_ext": build_ext},
     install_requires=[
         "numpy>=2.0",
-        "scipy",
+    #    "scipy",
         "pyparsing",
         "packaging",
     ],
@@ -181,6 +180,8 @@ metadata = dict(
             "mdinspect = biotraj.scripts.mdinspect:entry_point",
         ],
     },
+    packages=find_packages(where='src'),
+    package_dir={'': 'src'},
 )
 
 
