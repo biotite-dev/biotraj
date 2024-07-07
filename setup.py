@@ -76,31 +76,31 @@ def format_extensions():
     compiler_args = compiler.compiler_args_warn
 
     xtc = Extension(
-        "mdtraj.formats.xtc",
+        "biotraj.formats.xtc",
         sources=[
-            "mdtraj/formats/xtc/src/xdrfile.c",
-            "mdtraj/formats/xtc/src/xdr_seek.c",
-            "mdtraj/formats/xtc/src/xdrfile_xtc.c",
-            "mdtraj/formats/xtc/xtc.pyx",
+            "src/biotraj/formats/src/xdrfile.c",
+            "src/biotraj/formats/src/xdr_seek.c",
+            "src/biotraj/formats/src/xdrfile_xtc.c",
+            "src/biotraj/formats/xtc.pyx",
         ],
         include_dirs=[
-            "mdtraj/formats/xtc/include/",
-            "mdtraj/formats/xtc/",
+            "src/biotraj/formats/include/",
+            "src/biotraj/formats/",
         ],
         extra_compile_args=compiler_args,
     )
 
     trr = Extension(
-        "mdtraj.formats.trr",
+        "biotraj.formats.trr",
         sources=[
-            "mdtraj/formats/xtc/src/xdrfile.c",
-            "mdtraj/formats/xtc/src/xdr_seek.c",
-            "mdtraj/formats/xtc/src/xdrfile_trr.c",
-            "mdtraj/formats/xtc/trr.pyx",
+            "src/biotraj/formats/src/xdrfile.c",
+            "src/biotraj/formats/src/xdr_seek.c",
+            "src/biotraj/formats/src/xdrfile_trr.c",
+            "src/biotraj/formats/trr.pyx",
         ],
         include_dirs=[
-            "mdtraj/formats/xtc/include/",
-            "mdtraj/formats/xtc/",
+            "src/biotraj/formats/include/",
+            "src/biotraj/formats/",
         ],
         extra_compile_args=compiler_args,
     )
@@ -119,177 +119,38 @@ def format_extensions():
         zlib_library_dirs += [f"{sys.prefix}/lib"]
 
     dcd = Extension(
-        "mdtraj.formats.dcd",
+        "biotraj.formats.dcd",
         sources=[
-            "mdtraj/formats/dcd/src/dcdplugin.c",
-            "mdtraj/formats/dcd/dcd.pyx",
+            "src/biotraj/formats/src/dcdplugin.c",
+            "src/biotraj/formats/dcd.pyx",
         ],
         include_dirs=[
-            "mdtraj/formats/dcd/include/",
-            "mdtraj/formats/dcd/",
+            "src/biotraj/formats/include/",
+            "src/biotraj/formats/",
         ],
         extra_compile_args=compiler_args,
     )
 
-    dtr = Extension(
-        "mdtraj.formats.dtr",
-        sources=[
-            "mdtraj/formats/dtr/src/dtrplugin.cxx",
-            "mdtraj/formats/dtr/dtr.pyx",
-        ],
-        include_dirs=[
-            "mdtraj/formats/dtr/include/",
-            "mdtraj/formats/dtr/",
-        ],
-        define_macros=[("DESRES_READ_TIMESTEP2", 1)],
-        language="c++",
-        extra_compile_args=compiler_args,
-        libraries=extra_cpp_libraries,
-    )
+#    dtr = Extension(
+#        "biotraj.formats.dtr",
+#        sources=[
+#            "src/biotraj/formats/dtr/src/dtrplugin.cxx",
+#            "src/biotraj/formats/dtr/dtr.pyx",
+#        ],
+#        include_dirs=[
+#            "src/biotraj/formats/dtr/include/",
+#            "src/biotraj/formats/dtr/",
+#        ],
+#        define_macros=[("DESRES_READ_TIMESTEP2", 1)],
+#        language="c++",
+#        extra_compile_args=compiler_args,
+#        libraries=extra_cpp_libraries,
+#    )
 
-    return [xtc, trr, dcd, dtr]
-
-
-def rmsd_extensions():
-    compiler_args = (
-        compiler.compiler_args_openmp
-        + compiler.compiler_args_sse2
-        + compiler.compiler_args_sse3
-        + compiler.compiler_args_opt
-        + compiler.compiler_args_warn
-    )
-    compiler_libraries = compiler.compiler_libraries_openmp
-    define_macros = [("__NO_INTRINSICS", 1)] if compiler.disable_intrinsics else None
-
-    libtheobald = StaticLibrary(
-        "mdtraj.core.lib.libtheobald",
-        sources=[
-            "mdtraj/rmsd/src/theobald_rmsd.cpp",
-            "mdtraj/rmsd/src/center.cpp",
-        ],
-        include_dirs=[
-            "mdtraj/rmsd/include",
-        ],
-        export_include=[
-            "mdtraj/rmsd/include/theobald_rmsd.h",
-            "mdtraj/rmsd/include/center.h",
-        ],
-        language="c++",
-        # don't enable OpenMP
-        extra_compile_args=(compiler.compiler_args_sse2 + compiler.compiler_args_sse3 + compiler.compiler_args_opt),
-    )
-
-    rmsd = Extension(
-        "mdtraj._rmsd",
-        sources=[
-            "mdtraj/rmsd/src/theobald_rmsd.cpp",
-            "mdtraj/rmsd/src/rotation.cpp",
-            "mdtraj/rmsd/src/center.cpp",
-            "mdtraj/rmsd/_rmsd.pyx",
-        ],
-        include_dirs=["mdtraj/rmsd/include"],
-        define_macros=define_macros,
-        extra_compile_args=compiler_args,
-        libraries=compiler_libraries,
-        language="c++",
-    )
-
-    lprmsd = Extension(
-        "mdtraj._lprmsd",
-        sources=[
-            "mdtraj/rmsd/src/theobald_rmsd.cpp",
-            "mdtraj/rmsd/src/rotation.cpp",
-            "mdtraj/rmsd/src/center.cpp",
-            "mdtraj/rmsd/src/fancy_index.cpp",
-            "mdtraj/rmsd/src/Munkres.cpp",
-            "mdtraj/rmsd/src/euclidean_permutation.cpp",
-            "mdtraj/rmsd/_lprmsd.pyx",
-        ],
-        language="c++",
-        define_macros=define_macros,
-        include_dirs=["mdtraj/rmsd/include"],
-        extra_compile_args=compiler_args,
-        libraries=compiler_libraries + extra_cpp_libraries,
-    )
-    return rmsd, lprmsd, libtheobald
+    return [xtc, trr, dcd]#, dtr]
 
 
-def geometry_extensions():
-    compiler.initialize()
-    compiler_args = (
-        compiler.compiler_args_openmp
-        + compiler.compiler_args_sse2
-        + compiler.compiler_args_sse3
-        + compiler.compiler_args_opt
-        + compiler.compiler_args_warn
-    )
-    define_macros = [("__NO_INTRINSICS", 1)] if compiler.disable_intrinsics else None
-    compiler_libraries = compiler.compiler_libraries_openmp + extra_cpp_libraries
-
-    return [
-        Extension(
-            "mdtraj.geometry._geometry",
-            sources=[
-                "mdtraj/geometry/src/sasa.cpp",
-                "mdtraj/geometry/src/dssp.cpp",
-                "mdtraj/geometry/src/geometry.cpp",
-                "mdtraj/geometry/src/_geometry.pyx",
-            ],
-            include_dirs=[
-                "mdtraj/geometry/include",
-                "mdtraj/geometry/src/kernels",
-            ],
-            depends=[
-                "mdtraj/geometry/src/kernels/anglekernels.h",
-                "mdtraj/geometry/src/kernels/dihedralkernels.h",
-                "mdtraj/geometry/src/kernels/distancekernels.h",
-            ],
-            define_macros=define_macros,
-            extra_compile_args=compiler_args,
-            libraries=compiler_libraries,
-            language="c++",
-        ),
-        Extension(
-            "mdtraj.geometry.drid",
-            sources=[
-                "mdtraj/geometry/drid.pyx",
-                "mdtraj/geometry/src/dridkernels.cpp",
-                "mdtraj/geometry/src/moments.cpp",
-            ],
-            include_dirs=["mdtraj/geometry/include"],
-            define_macros=define_macros,
-            extra_compile_args=compiler_args,
-            libraries=compiler_libraries,
-            language="c++",
-        ),
-        Extension(
-            "mdtraj.geometry.neighbors",
-            sources=[
-                "mdtraj/geometry/neighbors.pyx",
-                "mdtraj/geometry/src/neighbors.cpp",
-            ],
-            include_dirs=["mdtraj/geometry/include"],
-            define_macros=define_macros,
-            extra_compile_args=compiler_args,
-            libraries=compiler_libraries,
-            language="c++",
-        ),
-        Extension(
-            "mdtraj.geometry.neighborlist",
-            sources=[
-                "mdtraj/geometry/neighborlist.pyx",
-                "mdtraj/geometry/src/neighborlist.cpp",
-            ],
-            include_dirs=["mdtraj/geometry/include"],
-            define_macros=define_macros,
-            extra_compile_args=compiler_args,
-            libraries=compiler_libraries,
-            language="c++",
-        ),
-    ]
-
-
-write_version_py(VERSION, ISRELEASED, "mdtraj/version.py")
+write_version_py(VERSION, ISRELEASED, "src/biotraj/version.py")
 
 metadata = dict(
     name="mdtraj",
@@ -299,25 +160,25 @@ metadata = dict(
     long_description="\n".join(DOCLINES[2:]),
     version=__version__,
     license="LGPLv2.1+",
-    url="http://mdtraj.org",
-    download_url="https://github.com/rmcgibbo/mdtraj/releases/latest",
+    url="http://biotraj.org",
+    download_url="https://github.com/rmcgibbo/src/biotraj/releases/latest",
     platforms=["Linux", "Mac OS-X", "Unix", "Windows"],
     python_requires='>=3.9',
     classifiers=CLASSIFIERS.splitlines(),
     packages=find_packages(),
     cmdclass={"build_ext": build_ext},
     install_requires=[
-        "numpy>=1.23,<2.0.0a0",
+        "numpy>=2.0",
         "scipy",
         "pyparsing",
         "packaging",
     ],
-    package_data={"mdtraj.formats.pdb": ["data/*"]},
+    package_data={"biotraj.formats.pdb": ["data/*"]},
     zip_safe=False,
     entry_points={
         "console_scripts": [
-            "mdconvert = mdtraj.scripts.mdconvert:entry_point",
-            "mdinspect = mdtraj.scripts.mdinspect:entry_point",
+            "mdconvert = biotraj.scripts.mdconvert:entry_point",
+            "mdinspect = biotraj.scripts.mdinspect:entry_point",
         ],
     },
 )
@@ -330,26 +191,23 @@ if __name__ == "__main__":
     run_build = parse_setuppy_commands()
     if run_build:
         extensions = format_extensions()
-        extensions.extend(rmsd_extensions())
-        extensions.extend(geometry_extensions())
 
         # most extensions use numpy, add headers for it.
         try:
             import Cython as _c
             from Cython.Build import cythonize
-
-            if _c.__version__ < "0.29":
-                raise ImportError("Too old")
+            #if _c.__version__ < "0.29":
+            #    raise ImportError("Too old")
         except ImportError as e:
             print(
-                "mdtrajs setup depends on Cython (>=0.29). Install it prior invoking setup.py",
+                "mdtrajs setup depends on Cython (>=3.0). Install it prior invoking setup.py",
             )
             print(e)
             sys.exit(1)
         try:
             import numpy as np
         except ImportError:
-            print("mdtrajs setup depends on NumPy. Install it prior invoking setup.py")
+            print("biotraj setup depends on NumPy. Install it prior invoking setup.py")
             sys.exit(1)
 
         for e in extensions:
