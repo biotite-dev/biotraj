@@ -107,11 +107,16 @@ includes = [
     "src/biotraj/formats/include"
 ]
 
-[build.hooks.cython.options.files]
+[build.hooks.cython.options]
 targets = [
   "src/biotraj/formats/dcd.pyx",
   "src/biotraj/formats/trr.pyx",
   "src/biotraj/formats/xtc.pyx"
+]
+
+includes = [
+    "src/biotraj/formats/include",
+    "src/biotraj/formats/src"
 ]
 
 compile_args = [
