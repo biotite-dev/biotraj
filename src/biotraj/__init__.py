@@ -68,7 +68,7 @@ from .core.trajectory import *
 
 __name__ = "biotraj"
 __all__ = (
-    "rmsf",
+    #"rmsf",
     "element",
     "Amide",
     "Aromatic",

@@ -45,7 +45,7 @@ import numpy as np
 import biotraj.core.element as elem
 
 # ours
-from mdtraj import version
+from biotraj import version
 from biotraj.core.topology import Topology
 from biotraj.formats.registry import FormatRegistry
 from biotraj.utils import cast_indices, ensure_type, import_, in_units_of

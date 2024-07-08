@@ -51,7 +51,7 @@ from re import findall, match, sub
 
 import numpy as np
 
-import mdtraj as md
+import biotraj as md
 from biotraj.core import element as elem
 from biotraj.formats import pdb
 from biotraj.formats.registry import FormatRegistry

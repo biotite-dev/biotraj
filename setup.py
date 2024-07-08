@@ -149,6 +149,79 @@ def format_extensions():
 
     return [xtc, trr, dcd]#, dtr]
 
+def geometry_extensions():
+    compiler.initialize()
+    compiler_args = (
+        compiler.compiler_args_openmp
+        + compiler.compiler_args_sse2
+        + compiler.compiler_args_sse3
+        + compiler.compiler_args_opt
+        + compiler.compiler_args_warn
+    )
+    define_macros = [("__NO_INTRINSICS", 1)] if compiler.disable_intrinsics else None
+    compiler_libraries = compiler.compiler_libraries_openmp + extra_cpp_libraries
+
+    return [
+        Extension(
+            "biotraj.geometry._geometry",
+            sources=[
+                "src/biotraj/geometry/src/sasa.cpp",
+                "src/biotraj/geometry/src/dssp.cpp",
+                "src/biotraj/geometry/src/geometry.cpp",
+                "src/biotraj/geometry/src/_geometry.pyx",
+            ],
+            include_dirs=[
+                "src/biotraj/geometry/include",
+                "src/biotraj/geometry/src/kernels",
+            ],
+            depends=[
+                "src/biotraj/geometry/src/kernels/anglekernels.h",
+                "src/biotraj/geometry/src/kernels/dihedralkernels.h",
+                "src/biotraj/geometry/src/kernels/distancekernels.h",
+            ],
+            define_macros=define_macros,
+            extra_compile_args=compiler_args,
+            libraries=compiler_libraries,
+            language="c++",
+        ),
+        Extension(
+            "biotraj.geometry.drid",
+            sources=[
+                "src/biotraj/geometry/drid.pyx",
+                "src/biotraj/geometry/src/dridkernels.cpp",
+                "src/biotraj/geometry/src/moments.cpp",
+            ],
+            include_dirs=["src/biotraj/geometry/include"],
+            define_macros=define_macros,
+            extra_compile_args=compiler_args,
+            libraries=compiler_libraries,
+            language="c++",
+        ),
+        Extension(
+            "biotraj.geometry.neighbors",
+            sources=[
+                "src/biotraj/geometry/neighbors.pyx",
+                "src/biotraj/geometry/src/neighbors.cpp",
+            ],
+            include_dirs=["src/biotraj/geometry/include"],
+            define_macros=define_macros,
+            extra_compile_args=compiler_args,
+            libraries=compiler_libraries,
+            language="c++",
+        ),
+        Extension(
+            "biotraj.geometry.neighborlist",
+            sources=[
+                "src/biotraj/geometry/neighborlist.pyx",
+                "src/biotraj/geometry/src/neighborlist.cpp",
+            ],
+            include_dirs=["src/biotraj/geometry/include"],
+            define_macros=define_macros,
+            extra_compile_args=compiler_args,
+            libraries=compiler_libraries,
+            language="c++",
+        ),
+    ]
 
 write_version_py(VERSION, ISRELEASED, "src/biotraj/version.py")
 
@@ -192,6 +265,7 @@ if __name__ == "__main__":
     run_build = parse_setuppy_commands()
     if run_build:
         extensions = format_extensions()
+        extensions.extend(geometry_extensions())
 
         # most extensions use numpy, add headers for it.
         try:
