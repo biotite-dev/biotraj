@@ -48,4 +48,12 @@ biotite.egg-info
 .DS_Store
 
 # Ignore temp files created via Jupyter
-**/.ipynb_checkpoints/
+**/.pynb_checkpoints/
+
+# Ignore pycache
+**/__pycache__
+
+# Ignore pycache
+**/__pycache__/
+
+
