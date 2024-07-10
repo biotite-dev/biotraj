@@ -19,7 +19,6 @@ htmlcov
 
 # Ignore files created via Cython
 *.c
-*.cpp
 *.so
 *.pyd
 
