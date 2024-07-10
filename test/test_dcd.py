@@ -9,13 +9,11 @@ from .util import data_dir
 
 @pytest.fixture(scope="module")
 def dcd_path():
-    path_dcd = join(data_dir(), "frame0.dcd")
-    return path_dcd
+    return join(data_dir(), "frame0.dcd")
 
 @pytest.fixture(scope="module")
 def dcd_npz_reference_path():
-    path_npz = join(data_dir(), "frame0.dcd.npz")
-    return path_npz
+    return join(data_dir(), "frame0.dcd.npz")
 
 ## Trajectory read-in
 # Compare DCD reader results with NPZ coordinate reference
