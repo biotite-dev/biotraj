@@ -1436,7 +1436,7 @@ class Trajectory:
             ".xyz.gz": self.save_xyz,
             ".gro": self.save_gro,
             ".rst7": self.save_amberrst7,
-            ".dtr": self.save_dtr,
+            #".dtr": self.save_dtr,
             ".gsd": self.save_gsd,
         }
 

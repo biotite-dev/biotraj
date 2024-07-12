@@ -140,7 +140,7 @@ def load_pdb(
     --------
     biotraj.PDBTrajectoryFile : Low level interface to PDB files
     """
-    from mdtraj import Trajectory
+    from biotraj import Trajectory
 
     if not isinstance(filename, (str, os.PathLike)):
         raise TypeError(
