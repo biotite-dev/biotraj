@@ -30,6 +30,7 @@ needs_cpptraj = pytest.mark.skipif(
     ),
 )
 
+## Create test classes: Test with both the native MDTraj netCDF reader
 fd, temp = tempfile.mkstemp(suffix=".nc")
 fd2, temp2 = tempfile.mkstemp(suffix=".nc")
 
