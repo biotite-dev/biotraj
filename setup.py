@@ -134,12 +134,12 @@ def format_extensions():
 #    dtr = Extension(
 #        "biotraj.formats.dtr",
 #        sources=[
-#            "src/biotraj/formats/dtr/src/dtrplugin.cxx",
-#            "src/biotraj/formats/dtr/dtr.pyx",
+#            "src/biotraj/formats/src/dtrplugin.cxx",
+#            "src/biotraj/formats/dtr.pyx",
 #        ],
 #        include_dirs=[
-#            "src/biotraj/formats/dtr/include/",
-#            "src/biotraj/formats/dtr/",
+#            "src/biotraj/formats/include/",
+#            "src/biotraj/formats/",
 #        ],
 #        define_macros=[("DESRES_READ_TIMESTEP2", 1)],
 #        language="c++",

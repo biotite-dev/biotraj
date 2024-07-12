@@ -35,7 +35,7 @@ from ..formats import (
     AmberNetCDFRestartFile,
     AmberRestartFile,
     DCDTrajectoryFile,
-    #DTRTrajectoryFile,
+#    DTRTrajectoryFile,
     GroTrajectoryFile,
     HDF5TrajectoryFile,
     LAMMPSTrajectoryFile,

@@ -1,6 +1,7 @@
 from .amberrst import AmberNetCDFRestartFile, AmberRestartFile
 from .arc import ArcTrajectoryFile
 from .dcd import DCDTrajectoryFile
+#from .dtr import DTRTrajectoryFile
 from .gro import GroTrajectoryFile
 from .hdf5 import HDF5TrajectoryFile
 from .lammpstrj import LAMMPSTrajectoryFile
@@ -18,6 +19,7 @@ __all__ = (
     "AmberRestartFile",
     "ArcTrajectoryFile",
     "DCDTrajectoryFile",
+#    "DTRTrajectoryFile",
     "GroTrajectoryFile",
     "HDF5TrajectoryFile",
     "LAMMPSTrajectoryFile",

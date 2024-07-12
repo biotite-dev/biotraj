@@ -1,7 +1,7 @@
 [project]
 name = "biotraj"
 requires-python = ">=3.10"
-description = "A comprehensive library for computational molecular biology"
+description = "Basic trajectory file format functionality for Biotite; forked from MDTraj"
 readme = "README.rst"
 authors = [
   {name = "Robert McGibbon"},
