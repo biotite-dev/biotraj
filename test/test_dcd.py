@@ -32,7 +32,7 @@ def test_read_n_frames(dcd_path):
     assert np.allclose(box_lengths1, box_lengths2)
     assert np.allclose(box_angles1, box_angles2)
 
-# Read DCD files with strides
+# Read DCD file with strides
 def test_read_stride(dcd_path):
     with DCDTrajectoryFile(dcd_path) as f:
         xyz1, box_lengths1, box_angles1 = f.read()
@@ -43,7 +43,7 @@ def test_read_stride(dcd_path):
     assert np.allclose(box_lengths1[::2], box_lengths2)
     assert np.allclose(box_angles1[::2], box_angles2)
 
-# Read DCD files strided, for a subset of frames
+# Read DCD file strided, for a subset of frames
 def test_read_stride_n_frame_subset(dcd_path):
     with DCDTrajectoryFile(dcd_path) as f:
         xyz1, box_lengths1, box_angles1 = f.read()

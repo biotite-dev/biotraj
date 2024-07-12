@@ -133,7 +133,6 @@ class NetCDFTrajectoryFile:
         try:
             # import netcdf4 if it's available
             import netCDF4
-
             netcdf = netCDF4.Dataset
 
             # set input args for netCDF4

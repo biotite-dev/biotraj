@@ -7,7 +7,6 @@ from biotraj.formats import XTCTrajectoryFile
 
 from .util import data_dir
 
-
 @pytest.fixture(scope="module")
 def xtc_path():
     return join(data_dir(), "frame0.xtc")
@@ -33,8 +32,8 @@ not_on_win = pytest.mark.skipif(
     reason="Can not open file being written again due to file locking.",
 )
 
-# Test: Read Chunks
-def test_read_chunk1(xtc_npz_reference_path, xtc_path):
+# Test non-default buffer chunk size
+def test_read_chunk_buffer_factor_0_5(xtc_npz_reference_path, xtc_path):
     with XTCTrajectoryFile(xtc_path, "r", chunk_size_multiplier=0.5) as f:
         xyz, time, step, box = f.read()
 
@@ -44,10 +43,29 @@ def test_read_chunk1(xtc_npz_reference_path, xtc_path):
     assert np.allclose(box, npz_file["box"])
     assert np.allclose(time, npz_file["time"])
 
+def test_read_chunk_buffer_factor_1(xtc_npz_reference_path, xtc_path):
+    with XTCTrajectoryFile(xtc_path, "r", chunk_size_multiplier=1) as f:
+        xyz, time, step, box = f.read()
+
+    npz_file = np.load(xtc_npz_reference_path)
+    assert np.allclose(xyz, npz_file["xyz"])
+    assert np.allclose(step, npz_file["step"])
+    assert np.allclose(box, npz_file["box"])
+    assert np.allclose(time, npz_file["time"])
 
 
+def test_read_chunk_buffer_factor_2(xtc_npz_reference_path, xtc_path):
+    with XTCTrajectoryFile(xtc_path, chunk_size_multiplier=2) as f:
+        xyz, time, step, box = f.read(n_frames=100)
+
+    npz_file = np.load(xtc_npz_reference_path)
+    assert np.allclose(xyz, npz_file["xyz"][:100])
+    assert np.allclose(step, npz_file["step"][:100])
+    assert np.allclose(box, npz_file["box"][:100])
+    assert np.allclose(time, npz_file["time"][:100])
+
+# Read XTC files with strides
 def test_read_stride(xtc_npz_reference_path, xtc_path, strides):
-    # read xtc with stride
     npz_file = np.load(xtc_npz_reference_path)
     for s in strides:
         with XTCTrajectoryFile(xtc_path) as f:
@@ -57,9 +75,8 @@ def test_read_stride(xtc_npz_reference_path, xtc_path, strides):
         assert np.allclose(box, npz_file["box"][::s])
         assert np.allclose(time, npz_file["time"][::s])
 
-
+# Read XTC file strided, for a subset of frames
 def test_read_stride_n_frames(xtc_npz_reference_path, xtc_path, strides):
-    # read xtc with stride with n_frames
     npz_file = np.load(xtc_npz_reference_path)
     for s in strides:
         with XTCTrajectoryFile(xtc_path) as f:
@@ -69,37 +86,38 @@ def test_read_stride_n_frames(xtc_npz_reference_path, xtc_path, strides):
         assert np.allclose(box, npz_file["box"][::s])
         assert np.allclose(time, npz_file["time"][::s])
 
-
+# Read XTC file strided with offsets
 def test_read_stride_offsets(xtc_npz_reference_path, xtc_path, strides):
-    # read xtc with stride and offsets
     npz_file = np.load(xtc_npz_reference_path)
     for s in strides:
         with XTCTrajectoryFile(xtc_path) as f:
-            f.offsets  # pre-compute byte offsets between frames
+            # pre-compute byte offsets between frames
+            f.offsets  
             xyz, time, step, box = f.read(stride=s)
         assert np.allclose(xyz, npz_file["xyz"][::s])
         assert np.allclose(step, npz_file["step"][::s])
         assert np.allclose(box, npz_file["box"][::s])
         assert np.allclose(time, npz_file["time"][::s])
 
-
+# Read XTC file strided for n_frames with offsets
 def test_read_stride_n_frames_offsets(xtc_npz_reference_path, xtc_path, strides):
-    # read xtc with stride with n_frames and offsets
     npz_file = np.load(xtc_npz_reference_path)
     for s in strides:
         with XTCTrajectoryFile(xtc_path) as f:
-            f.offsets  # pre-compute byte offsets between frames
+            # pre-compute byte offsets between frames
+            f.offsets  
             xyz, time, step, box = f.read(n_frames=1000, stride=s)
         assert np.allclose(xyz, npz_file["xyz"][::s])
         assert np.allclose(step, npz_file["step"][::s])
         assert np.allclose(box, npz_file["box"][::s])
         assert np.allclose(time, npz_file["time"][::s])
 
-
+# Read XTC file with subsequently different strides
 def test_read_stride_switching_offsets(xtc_npz_reference_path, xtc_path):
     npz_file = np.load(xtc_npz_reference_path)
     with XTCTrajectoryFile(xtc_path) as f:
-        f.offsets  # pre-compute byte offsets between frames
+        # pre-compute byte offsets between frames
+        f.offsets  
         # read the first 10 frames with stride of 2
         s = 2
         n_frames = 10
@@ -119,8 +137,8 @@ def test_read_stride_switching_offsets(xtc_npz_reference_path, xtc_path):
         assert np.allclose(box, npz_file["box"][offset::s])
         assert np.allclose(time, npz_file["time"][offset::s])
 
-
-def test_read_atomindices_1(xtc_npz_reference_path, xtc_path):
+# Test a selection of atomindices
+def test_read_atomindices_selection(xtc_npz_reference_path, xtc_path):
     npz_file = np.load(xtc_npz_reference_path)
     with XTCTrajectoryFile(xtc_path) as f:
         xyz, time, step, box = f.read(atom_indices=[0, 1, 2])
@@ -129,9 +147,11 @@ def test_read_atomindices_1(xtc_npz_reference_path, xtc_path):
     assert np.allclose(box, npz_file["box"])
     assert np.allclose(time, npz_file["time"])
 
-
-def test_read_atomindices_w_stride(xtc_npz_reference_path, xtc_path, strides):
-    # test case for bug: https://github.com/mdtraj/mdtraj/issues/1394
+# Test a selection of atomindices for strided trajectory frames
+# Test case for bug: https://github.com/mdtraj/mdtraj/issues/1394
+def test_read_atomindices_selection_strided_frames(
+        xtc_npz_reference_path, xtc_path, strides
+):
     npz_file = np.load(xtc_npz_reference_path)
     for stride in strides:
         with XTCTrajectoryFile(xtc_path) as f:
@@ -141,8 +161,8 @@ def test_read_atomindices_w_stride(xtc_npz_reference_path, xtc_path, strides):
         assert np.allclose(box, npz_file["box"][::stride])
         assert np.allclose(time, npz_file["time"][::stride])
 
-
-def test_read_atomindices_2(xtc_npz_reference_path, xtc_path):
+# Test strided atomindices
+def test_read_atomindices_strided(xtc_npz_reference_path, xtc_path):
     npz_file = np.load(xtc_npz_reference_path)
     with XTCTrajectoryFile(xtc_path) as f:
         xyz, time, step, box = f.read(atom_indices=slice(None, None, 2))
@@ -151,30 +171,8 @@ def test_read_atomindices_2(xtc_npz_reference_path, xtc_path):
     assert np.allclose(box, npz_file["box"])
     assert np.allclose(time, npz_file["time"])
 
-
-def test_read_chunk2(xtc_npz_reference_path, xtc_path):
-    with XTCTrajectoryFile(xtc_path, "r", chunk_size_multiplier=1) as f:
-        xyz, time, step, box = f.read()
-
-    npz_file = np.load(xtc_npz_reference_path)
-    assert np.allclose(xyz, npz_file["xyz"])
-    assert np.allclose(step, npz_file["step"])
-    assert np.allclose(box, npz_file["box"])
-    assert np.allclose(time, npz_file["time"])
-
-
-def test_read_chunk3(xtc_npz_reference_path, xtc_path):
-    with XTCTrajectoryFile(xtc_path, chunk_size_multiplier=2) as f:
-        xyz, time, step, box = f.read(n_frames=100)
-
-    npz_file = np.load(xtc_npz_reference_path)
-    assert np.allclose(xyz, npz_file["xyz"][:100])
-    assert np.allclose(step, npz_file["step"][:100])
-    assert np.allclose(box, npz_file["box"][:100])
-    assert np.allclose(time, npz_file["time"][:100])
-
-
-def test_write_0(tmpdir, xtc_path):
+# Write coords only/all categories/all categories iteratively
+def test_write_coords_only(tmpdir, xtc_path):
     with XTCTrajectoryFile(xtc_path) as f:
         xyz = f.read()[0]
 
@@ -187,8 +185,7 @@ def test_write_0(tmpdir, xtc_path):
         xyz2, time2, step2, box2 = f.read()
     assert np.allclose(xyz, xyz2)
 
-
-def test_write_1(tmpdir):
+def test_write_coords_time_step_box(tmpdir):
     xyz = np.asarray(np.around(np.random.randn(100, 10, 3), 3), dtype=np.float32)
     time = np.asarray(np.random.randn(100), dtype=np.float32)
     step = np.arange(100)
@@ -205,8 +202,7 @@ def test_write_1(tmpdir):
     assert np.allclose(step, step2)
     assert np.allclose(box, box2)
 
-
-def test_write_2(tmpdir):
+def test_write_coords_time_step_box_iteratively(tmpdir):
     xyz = np.asarray(np.around(np.random.randn(100, 10, 3), 3), dtype=np.float32)
     time = np.asarray(np.random.randn(100), dtype=np.float32)
     step = np.arange(100)
@@ -224,15 +220,22 @@ def test_write_2(tmpdir):
     assert np.allclose(step, step2)
     assert np.allclose(box, box2)
 
+def test_short_traj(tmpdir):
+    tmpfn = join(tmpdir, "traj.xtc")
+    with XTCTrajectoryFile(tmpfn, "w") as f:
+        f.write(np.random.uniform(size=(5, 100000, 3)))
+    with XTCTrajectoryFile(tmpfn, "r") as f:
+        assert len(f) == 5
 
-def test_read_error_0(tmpdir):
+# Attempt to read an empty file
+def test_read_empty_file_error(tmpdir):
     tmpfn = join(tmpdir, "traj.xtc")
     with pytest.raises(IOError):
         with XTCTrajectoryFile(tmpfn, "r") as f:
             f.read()
 
-
-def test_write_error_0(tmpdir):
+# Attempt to read from file opened for writing
+def test_read_opened_for_write_error(tmpdir):
     xyz = np.asarray(np.random.randn(100, 3, 3), dtype=np.float32)
 
     tmpfn = join(tmpdir, "traj.xtc")
@@ -240,18 +243,18 @@ def test_write_error_0(tmpdir):
         with pytest.raises(ValueError):
             f.read(xyz)
 
-
-def test_read_error_1():
+# Try to read non-existant file
+def test_read_non_existant_error():
     with pytest.raises(IOError):
         XTCTrajectoryFile("/tmp/sdfsdfsdf")
 
-
-def test_read_error_2(dcd_path):
+# Attempt to non-XTC file
+def test_read_without_opening(dcd_path):
     with pytest.raises(IOError):
         XTCTrajectoryFile(dcd_path).read()
 
-
-def test_xtc_write_wierd_0(tmpdir):
+# Attempt subsequent writes with deformed array
+def test_xtc_write_weird(tmpdir):
     x0 = np.asarray(np.random.randn(100, 3, 3), dtype=np.float32)
     x1 = np.asarray(np.random.randn(100, 9, 3), dtype=np.float32)
     tmpfn = join(tmpdir, "traj.xtc")
@@ -260,10 +263,7 @@ def test_xtc_write_wierd_0(tmpdir):
         with pytest.raises(ValueError):
             f.write(x1)
 
-    xr = XTCTrajectoryFile(tmpfn).read()[0]
-    print(xr.shape)
-
-
+# Test tell function -> current position in file
 def test_tell(xtc_path):
     with XTCTrajectoryFile(xtc_path) as f:
         assert np.allclose(f.tell(), 0)
@@ -274,7 +274,7 @@ def test_tell(xtc_path):
         f.read(3)
         assert np.allclose(f.tell(), 104)
 
-
+# Test seek function -> Move to a new position in file
 def test_seek(xtc_path):
     reference = XTCTrajectoryFile(xtc_path).read()[0]
     with XTCTrajectoryFile(xtc_path) as f:
@@ -301,7 +301,7 @@ def test_seek(xtc_path):
         assert np.allclose(f.tell(), 1)
         assert np.allclose(f.read(1)[0][0], reference[1])
 
-
+# Test seek with subset of atoms
 def test_seek_natoms9(tmpdir, xtc_path):
     # create a xtc file with 9 atoms and seek it.
     with XTCTrajectoryFile(xtc_path, "r") as fh:
@@ -323,15 +323,14 @@ def test_seek_natoms9(tmpdir, xtc_path):
         f.seek(0, 0)
         assert np.allclose(f.read(1)[0].squeeze(), xyz[0])
 
-
+# Test, whether error is raised after attempted out-of-bounds seek
 def test_seek_out_of_bounds(xtc_path):
     with XTCTrajectoryFile(xtc_path, "r") as fh:
         with pytest.raises(IOError):
             fh.seek(10000000)
 
-
-def test_ragged_1(tmpdir):
-    # try first writing no box vectors,, and then adding some
+# Test raised error upon addition of box vectors after first writeout
+def test_ragged_box_angles_added_second_write_err(tmpdir):
     xyz = np.random.randn(100, 5, 3)
     time = np.random.randn(100)
     box = np.random.randn(100, 3, 3)
@@ -342,8 +341,8 @@ def test_ragged_1(tmpdir):
         with pytest.raises(ValueError):
             f.write(xyz, time, box)
 
-
-def test_ragged_2(tmpdir):
+# Test raised error upon removal of box vectors after first writeout
+def test_ragged_box_angles_missing_second_write_err(tmpdir):
     # try first writing no box vectors, and then adding some
     xyz = np.random.randn(100, 5, 3)
     time = np.random.randn(100)
@@ -355,15 +354,7 @@ def test_ragged_2(tmpdir):
         with pytest.raises(ValueError):
             f.write(xyz)
 
-
-def test_short_traj(tmpdir):
-    tmpfn = join(tmpdir, "traj.xtc")
-    with XTCTrajectoryFile(tmpfn, "w") as f:
-        f.write(np.random.uniform(size=(5, 100000, 3)))
-    with XTCTrajectoryFile(tmpfn, "r") as f:
-        assert len(f) == 5, len(f)
-
-
+# Write to file immediately, keep file open for rereading
 @not_on_win
 def test_flush(tmpdir):
     tmpfn = join(tmpdir, "traj.xtc")
