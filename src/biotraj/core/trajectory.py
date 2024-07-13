@@ -37,9 +37,7 @@ from ..formats import (
     DCDTrajectoryFile,
 #    DTRTrajectoryFile,
     GroTrajectoryFile,
-    HDF5TrajectoryFile,
     LAMMPSTrajectoryFile,
-    LH5TrajectoryFile,
     MDCRDTrajectoryFile,
     NetCDFTrajectoryFile,
     PDBTrajectoryFile,
@@ -78,8 +76,6 @@ __all__ = [
 _TOPOLOGY_EXTS = [
     ".pdb",
     ".pdb.gz",
-    ".h5",
-    ".lh5",
     ".prmtop",
     ".parm7",
     ".prm7",
@@ -88,7 +84,6 @@ _TOPOLOGY_EXTS = [
     ".hoomdxml",
     ".gro",
     ".arc",
-    ".hdf5",
     ".gsd",
 ]
 
@@ -1423,14 +1418,12 @@ class Trajectory:
             ".pdb": self.save_pdb,
             ".pdb.gz": self.save_pdb,
             ".dcd": self.save_dcd,
-            ".h5": self.save_hdf5,
             ".nc": self.save_netcdf,
             ".netcdf": self.save_netcdf,
             ".ncrst": self.save_netcdfrst,
             ".crd": self.save_mdcrd,
             ".mdcrd": self.save_mdcrd,
             ".ncdf": self.save_netcdf,
-            ".lh5": self.save_lh5,
             ".lammpstrj": self.save_lammpstrj,
             ".xyz": self.save_xyz,
             ".xyz.gz": self.save_xyz,
@@ -1473,40 +1466,6 @@ class Trajectory:
 
         # run the saver, and return whatever output it gives
         return saver(filename, **kwargs)
-
-    def save_hdf5(self, filename, mode="w", force_overwrite=True):
-        """Save trajectory to MDTraj HDF5 format
-
-        Parameters
-        ----------
-        filename : path-like
-            filesystem path in which to save the trajectory
-        force_overwrite : bool, default=True
-            Overwrite anything that exists at filename, if its already there
-        mode : str, default='w'
-            The mode in which to save the file. 'w' will overwrite any existing
-            file, 'a' will append to an existing file.
-        """
-        # check if savemode is valid (only "w" or "a" are allowed)
-        if mode not in ["w", "a"]:
-            raise ValueError("savemode must be either 'w' or 'a'")
-        
-        with HDF5TrajectoryFile(filename, mode, force_overwrite=force_overwrite) as f:
-            f.write(
-                coordinates=in_units_of(
-                    self.xyz,
-                    Trajectory._distance_unit,
-                    f.distance_unit,
-                ),
-                time=self.time,
-                cell_lengths=in_units_of(
-                    self.unitcell_lengths,
-                    Trajectory._distance_unit,
-                    f.distance_unit,
-                ),
-                cell_angles=self.unitcell_angles,
-            )
-            f.topology = self.topology
 
     def save_lammpstrj(self, filename, force_overwrite=True):
         """Save trajectory to LAMMPS custom dump format
@@ -1903,20 +1862,6 @@ class Trajectory:
                         cell_lengths=lengths[i],
                         cell_angles=self.unitcell_angles[i],
                     )
-
-    def save_lh5(self, filename, force_overwrite=True):
-        """Save trajectory in deprecated MSMBuilder2 LH5 (lossy HDF5) format.
-
-        Parameters
-        ----------
-        filename : path-like
-            filesystem path in which to save the trajectory
-        force_overwrite : bool, default=True
-            Overwrite anything that exists at filename, if it's already there
-        """
-        with LH5TrajectoryFile(filename, "w", force_overwrite=force_overwrite) as f:
-            f.write(coordinates=self.xyz)
-            f.topology = self.topology
 
     def save_gro(self, filename, force_overwrite=True, precision=3):
         """Save trajectory in Gromacs .gro format

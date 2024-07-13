@@ -46,10 +46,8 @@ from .formats.amberrst import load_ncrestrt, load_restrt
 from .formats.arc import load_arc
 from .formats.dcd import load_dcd
 #from biotraj.formats.dtr import load_dtr, load_stk
-from .formats.hdf5 import load_hdf5
 from .formats.hoomdxml import load_hoomdxml
 from .formats.lammpstrj import load_lammpstrj
-from .formats.lh5 import load_lh5
 from .formats.mdcrd import load_mdcrd
 from .formats.mol2 import load_mol2
 from .formats.netcdf import load_netcdf
@@ -82,10 +80,8 @@ __all__ = (
     "load_dcd",
     #"load_dtr",
     "load_stk",
-    "load_hdf5",
     "load_hoomdxml",
     "load_lammpstrj",
-    "load_lh5",
     "load_mdcrd",
     "load_mol2",
     "load_netcdf",
