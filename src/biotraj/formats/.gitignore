@@ -1,4 +1,5 @@
 trr.c
 xtc.c
 dcd.c
+dtr.cpp
 *.so

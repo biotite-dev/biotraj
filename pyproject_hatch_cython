@@ -1,7 +1,7 @@
 [project]
 name = "biotraj"
 requires-python = ">=3.10"
-description = "Basic trajectory file format functionality for Biotite; forked from MDTraj"
+description = "A comprehensive library for computational molecular biology"
 readme = "README.rst"
 authors = [
   {name = "Robert McGibbon"},
@@ -75,10 +75,73 @@ ignore = [
 [tool.ruff.lint.isort]
 known-first-party = ["biotraj"]
 
+[tool.hatch.build.targets.sdist]
+exclude = [
+  "tests",
+  "doc",
+  "environment.yml",
+  "setup_ccd.py",
+  # .github, .gitignore, .gitattributes
+  ".git*",
+]
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "src/biotraj/version.py"
+
+
+[tool.hatch.build.targets.wheel.hooks.cython]
+dependencies = ["hatch-cython"]
+
+[tool.hatch.build.targets.wheel.hooks.cython.options]
+include_numpy = true
+compile_py = false
+define_macros = [
+    ["NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION"],
+]
+# include .h or .cpp directories
+includes = [
+    "src/biotraj/formats/src",
+    "src/biotraj/formats/include"
+]
+
+[build.hooks.cython.options]
+targets = [
+  "src/biotraj/formats/dcd.pyx",
+  "src/biotraj/formats/trr.pyx",
+  "src/biotraj/formats/xtc.pyx"
+]
+
+includes = [
+    "src/biotraj/formats/include",
+    "src/biotraj/formats/src"
+]
+
+compile_args = [
+#    "-msse2",
+#    "-mssse3",
+    "-Wno-unused-function",
+    "-Wno-unreachable-code",
+    "-Wno-sign-compare",
+#    "-msse4",
+    "-fopenmp",
+    "-O3",
+    "-funroll-loops",
+    "-lz",
+    "--std=c++11",
+]
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
 [build-system]
 requires = [
-    "setuptools",
-    "wheel",
+    "hatchling",
+    "hatch-vcs == 0.4",
+    "hatch-cython == 0.5",
     "numpy >= 2.0",
-    "Cython >= 3.0"
+    "cython >= 3.0",
 ]
+build-backend = "hatchling.build"

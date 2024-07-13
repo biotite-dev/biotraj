@@ -55,7 +55,7 @@ from urllib.request import urlopen
 
 import numpy as np
 
-from mdtraj import version
+from biotraj import version
 from biotraj.core import element as elem
 from biotraj.core.topology import Topology
 from biotraj.formats.pdb.pdbstructure import PdbStructure
@@ -140,7 +140,7 @@ def load_pdb(
     --------
     biotraj.PDBTrajectoryFile : Low level interface to PDB files
     """
-    from mdtraj import Trajectory
+    from biotraj import Trajectory
 
     if not isinstance(filename, (str, os.PathLike)):
         raise TypeError(

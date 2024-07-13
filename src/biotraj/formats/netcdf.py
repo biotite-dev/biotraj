@@ -34,7 +34,7 @@ from datetime import datetime
 
 import numpy as np
 
-from mdtraj import version
+from biotraj import version
 from biotraj.formats.registry import FormatRegistry
 from biotraj.utils import cast_indices, ensure_type, import_, in_units_of
 
@@ -133,7 +133,6 @@ class NetCDFTrajectoryFile:
         try:
             # import netcdf4 if it's available
             import netCDF4
-
             netcdf = netCDF4.Dataset
 
             # set input args for netCDF4

@@ -22,6 +22,9 @@ dependencies:
   - networkx >=2.0
   - numpy >=2.0
   - requests >=2.12
+  - scipy >=1.13
+  - netcdf4 >=1.7.1
 
   # Testing
   - pytest >=7.0
+  - psutil >=5.9.0

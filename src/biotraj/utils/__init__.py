@@ -1,6 +1,12 @@
 from .delay_import import import_
 from .validation import cast_indices, check_random_state, ensure_type
 from .unit import in_units_of
+from .zipped import open_maybe_zipped
+from .unitcell import (
+    box_vectors_to_lengths_and_angles,
+    lengths_and_angles_to_box_vectors,
+    lengths_and_angles_to_tilt_factors,
+)
 
 __name__ = "biotraj.utils"
 __all__ = [
