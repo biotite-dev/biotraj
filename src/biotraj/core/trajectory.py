@@ -32,24 +32,14 @@ import numpy as np
 from .residue_names import _SOLVENT_TYPES
 from .topology import Topology
 from ..formats import (
-    AmberNetCDFRestartFile,
-    AmberRestartFile,
     DCDTrajectoryFile,
-#    DTRTrajectoryFile,
     GroTrajectoryFile,
-    LAMMPSTrajectoryFile,
-    MDCRDTrajectoryFile,
     NetCDFTrajectoryFile,
     PDBTrajectoryFile,
     TRRTrajectoryFile,
     XTCTrajectoryFile,
-    XYZTrajectoryFile,
 )
-from biotraj.formats.arc import load_arc
 from biotraj.formats.gro import load_gro
-from biotraj.formats.gsd import load_gsd_topology, write_gsd
-from biotraj.formats.hoomdxml import load_hoomdxml
-from biotraj.formats.mol2 import load_mol2
 from biotraj.formats.prmtop import load_prmtop
 from biotraj.formats.psf import load_psf
 from biotraj.formats.registry import FormatRegistry
@@ -80,11 +70,7 @@ _TOPOLOGY_EXTS = [
     ".parm7",
     ".prm7",
     ".psf",
-    ".mol2",
-    ".hoomdxml",
     ".gro",
-    ".arc",
-    ".gsd",
 ]
 
 
