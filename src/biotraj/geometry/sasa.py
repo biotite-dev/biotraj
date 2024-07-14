@@ -183,7 +183,7 @@ def shrake_rupley(
     mode="atom",
     change_radii=None,
     get_mapping=False,
-    atom_indices=None
+    atom_indices=None,
 ):
     """Compute the solvent accessible surface area of each atom or residue in each simulation frame.
 
@@ -282,16 +282,18 @@ def shrake_rupley(
                 "residues must have contiguous integer indices " "starting from zero",
             )
     else:
-        raise ValueError('mode must be one of "residue", "atom". "%s" supplied' %
-                         mode)
+        raise ValueError('mode must be one of "residue", "atom". "%s" supplied' % mode)
 
     if atom_indices is None:
         atom_selection_mask = np.ones(traj.n_atoms, dtype=np.int32)
         out = np.zeros((xyz.shape[0], dim1), dtype=np.float32)
     else:
-        atom_selection_mask = np.array([[1 if ii in atom_indices else 0][0] for ii in range(traj.n_atoms)], dtype=np.int32)
+        atom_selection_mask = np.array(
+            [[1 if ii in atom_indices else 0][0] for ii in range(traj.n_atoms)],
+            dtype=np.int32,
+        )
         out = np.full((xyz.shape[0], dim1), -1, dtype=np.float32)
-        out[:,atom_mapping[atom_indices]]=0
+        out[:, atom_mapping[atom_indices]] = 0
 
     modified_radii = {}
     if change_radii is not None:
@@ -302,12 +304,18 @@ def shrake_rupley(
             modified_radii[k] = v
 
     if bool(modified_radii):
-        atom_radii = [modified_radii[atom.element.symbol] for atom in traj.topology.atoms]
+        atom_radii = [
+            modified_radii[atom.element.symbol] for atom in traj.topology.atoms
+        ]
     else:
-        atom_radii = [_ATOMIC_RADII[atom.element.symbol] for atom in traj.topology.atoms]
+        atom_radii = [
+            _ATOMIC_RADII[atom.element.symbol] for atom in traj.topology.atoms
+        ]
     radii = np.array(atom_radii, np.float32) + probe_radius
 
-    _geometry._sasa(xyz, radii, int(n_sphere_points), atom_mapping, atom_selection_mask, out)
+    _geometry._sasa(
+        xyz, radii, int(n_sphere_points), atom_mapping, atom_selection_mask, out
+    )
 
     if get_mapping is True:
         return out, atom_mapping

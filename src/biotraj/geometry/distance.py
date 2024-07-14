@@ -490,10 +490,13 @@ def _distance_t(xyz, pairs, times):
 def _displacement(xyz, pairs):
     "Displacement vector between pairs of points in each frame"
     value = np.diff(xyz[:, pairs], axis=2)[:, :, 0]
-    assert value.shape == (
-        xyz.shape[0],
-        pairs.shape[0],
-        3,
+    assert (
+        value.shape
+        == (
+            xyz.shape[0],
+            pairs.shape[0],
+            3,
+        )
     ), f"v.shape {str(value.shape)}, xyz.shape {str(xyz.shape)}, pairs.shape {str(pairs.shape)}"
     return value
 

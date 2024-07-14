@@ -235,7 +235,8 @@ def _atom_sequence(top, atom_names, residue_offsets=None):
 
     if hasattr(top, "topology"):
         warnings.warn(
-            "Passing a Trajectory object to _atom_sequence is" "deprecated. Please pass a Topology object",
+            "Passing a Trajectory object to _atom_sequence is"
+            "deprecated. Please pass a Topology object",
             DeprecationWarning,
         )
         top = top.topology
@@ -254,11 +255,17 @@ def _atom_sequence(top, atom_names, residue_offsets=None):
             if all([rid + offset in atom_dict[cid] for offset in residue_offsets]):
                 # Check that we find all atom names in dict
                 if all(
-                    [atom in atom_dict[cid][rid + offset] for atom, offset in atoms_and_offsets],
+                    [
+                        atom in atom_dict[cid][rid + offset]
+                        for atom, offset in atoms_and_offsets
+                    ],
                 ):
                     # Lookup desired atom indices and and add to list.
                     atom_indices.append(
-                        [atom_dict[cid][rid + offset][atom] for atom, offset in atoms_and_offsets],
+                        [
+                            atom_dict[cid][rid + offset][atom]
+                            for atom, offset in atoms_and_offsets
+                        ],
                     )
                     found_residue_ids.append(rid)
 

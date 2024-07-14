@@ -100,10 +100,12 @@ def static_dielectric(traj, charges, temperature):
         u.elementary_charge * u.nanometers
     ) ** 2.0  # <M*M> - <M>*<M> = <(M - <M>) * (M - <M>)>
 
-    volume = traj.unitcell_volumes.mean() * u.nanometers**3.0  # Average box volume of trajectory
+    volume = (
+        traj.unitcell_volumes.mean() * u.nanometers**3.0
+    )  # Average box volume of trajectory
 
-    static_dielectric = 1.0 + dipole_variance / (
-        3 * kB * temperature * volume * epsilon0
+    static_dielectric = (
+        1.0 + dipole_variance / (3 * kB * temperature * volume * epsilon0)
     )  # Eq. 7 of Derivation of an improved simple point charge model for liquid water: SPC/A and SPC/L
     # Also https://github.com/gromacs/gromacs/blob/master/src/gromacs/gmxana/gmx_current.c#L622
 

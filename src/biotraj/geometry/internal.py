@@ -496,7 +496,10 @@ def get_angle_derivs(xyz, iangles):
 
         if np.linalg.norm(u + v) < 1e-10 or np.linalg.norm(u - v) < 1e-10:
             # if they're parallel
-            if np.linalg.norm(u + vector1) < 1e-10 or np.linalg.norm(u - vector1) < 1e-10:
+            if (
+                np.linalg.norm(u + vector1) < 1e-10
+                or np.linalg.norm(u - vector1) < 1e-10
+            ):
                 # and they're parallel o [1, -1, 1]
                 w_prime = np.cross(u, vector2)
             else:

@@ -1,7 +1,7 @@
-from os.path import join
 import functools
 import sys
 from collections import namedtuple
+from os.path import join
 from pathlib import Path
 
 import numpy as np
@@ -11,7 +11,6 @@ import biotraj as md
 import biotraj.core.trajectory
 import biotraj.formats
 import biotraj.utils
-from biotraj.core import element
 
 from .util import data_dir
 
@@ -26,6 +25,7 @@ file_objs = [
     (md.formats.GroTrajectoryFile, "gro"),
 ]
 
+
 # Handle reference trajectories
 @pytest.fixture(params=file_objs, ids=lambda x: x[1])
 def ref_traj(request, monkeypatch):
@@ -33,13 +33,15 @@ def ref_traj(request, monkeypatch):
 
     return TrajObj(fobj, fext, f"frame0.{fext}")
 
+
 # Create trajectory object for different file formats
-@pytest.fixture(params=file_objs, ids=lambda x : x[1])
+@pytest.fixture(params=file_objs, ids=lambda x: x[1])
 def write_traj(request, tmpdir):
     fobj, fext = request.param
     return TrajObj(fobj, fext, f"{tmpdir}/traj.{fext}")
 
-# Omit formats without box information 
+
+# Omit formats without box information
 # (Currently only PDB, extend if necessary)
 @pytest.fixture
 def write_traj_with_box(write_traj):
@@ -48,32 +50,34 @@ def write_traj_with_box(write_traj):
     else:
         return write_traj
 
+
 @pytest.fixture(scope="module")
 def xtc_path():
-    return join(data_dir(), "frame0.xtc")    
+    return join(data_dir(), "frame0.xtc")
+
 
 def data_path(file_str):
     return join(data_dir(), file_str)
 
+
 # Some formats don't save time information
 def has_time_info(fext):
-    return fext not in [
-        "dcd",
-        "pdb",
-        "pdb.gz"
-    ]
+    return fext not in ["dcd", "pdb", "pdb.gz"]
+
 
 # "xyz", "lammpstrj", "lh5" -> 3, 6 otherwise
 # NOTE: Keep in case xyz/lammpstrj are readded again
 def precision(fext):
-    #if fext in ["xyz", "lammpstrj", "lh5"]:
+    # if fext in ["xyz", "lammpstrj", "lh5"]:
     #    return 1e-03
-    #else:
+    # else:
     #    return 1e-06
     return 1e-06
 
+
 def precision2(fext1, fext2):
     return min(precision(fext1), precision(fext2))
+
 
 # Load trajectory with larger topology -> Test raised error
 # (22 atoms in XTC v. 2_000 atoms)
@@ -81,38 +85,38 @@ def test_mismatch(xtc_path, larger_topol_path=data_path("4ZUO.pdb")):
     with pytest.raises(ValueError):
         md.load(xtc_path, top=larger_topol_path)
 
+
 # Test correct handling of boxes after manual addition to PDB w/o box
-def test_box(pdb_path = data_path("native.pdb")):
+def test_box(pdb_path=data_path("native.pdb")):
     t = md.load(pdb_path)
     assert t.unitcell_vectors is None
     assert t.unitcell_lengths is None
     assert t.unitcell_angles is None
     assert t.unitcell_volumes is None
-    t.unitcell_vectors = np.array(
-        [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
-    ).reshape(1, 3, 3)
+    t.unitcell_vectors = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]]).reshape(1, 3, 3)
     assert np.allclose(np.array([1.0, 1.0, 1.0]), t.unitcell_lengths[0])
     assert np.allclose(np.array([90.0, 90.0, 90.0]), t.unitcell_angles[0])
     assert np.allclose(np.array([1.0]), t.unitcell_volumes)
 
+
 # Test, whether small boxes are read as is for PDB files
 # (unreasonably small boxes are removed heuristically with standard settings).
-def test_load_pdb_box(pdb_path = data_path("native2.pdb")):
+def test_load_pdb_box(pdb_path=data_path("native2.pdb")):
     t = md.load(pdb_path, no_boxchk=True)
     assert np.allclose(t.unitcell_lengths[0], np.array([0.1, 0.2, 0.3]))
     assert np.allclose(t.unitcell_angles[0], np.array([90.0, 90.0, 90.0]))
     assert np.allclose(
-        t.unitcell_vectors[0], 
-        np.array([[0.1, 0, 0], [0, 0.2, 0], [0, 0, 0.3]])
+        t.unitcell_vectors[0], np.array([[0.1, 0, 0], [0, 0.2, 0], [0, 0, 0.3]])
     )
+
 
 # Check whether box information is preserved over load/save
 # (PDB -> Traj formats)
 def test_box_load_save(
-        write_traj_with_box,
-        pdb_path = data_path("native.pdb"), 
-        pdb_path_2 = data_path("native2.pdb")
-        ):
+    write_traj_with_box,
+    pdb_path=data_path("native.pdb"),
+    pdb_path_2=data_path("native2.pdb"),
+):
     t = md.load(pdb_path_2, no_boxchk=True)
     top = md.load_topology(pdb_path, no_boxchk=True)
 
@@ -125,10 +129,11 @@ def test_box_load_save(
     assert np.allclose(t.unitcell_angles, t2.unitcell_angles)
     assert np.allclose(t.unitcell_lengths, t2.unitcell_lengths)
 
+
 # Test slice (load prepared XTC file)
 def test_slice(
-        intraj_prep=data_path("traj_prep.xtc"),
-        intraj_prep_top=data_path("traj_prep_top.pdb")
+    intraj_prep=data_path("traj_prep.xtc"),
+    intraj_prep_top=data_path("traj_prep_top.pdb"),
 ):
     t = md.load(intraj_prep, top=intraj_prep_top)
 
@@ -145,32 +150,42 @@ def test_slice(
         t.slice(key=range(10), copy=False).xyz,
     )
     assert np.allclose(
-        (t.slice(key=range(5), copy=False) + t.slice(key=range(5, 10), copy=False)).time,
+        (
+            t.slice(key=range(5), copy=False) + t.slice(key=range(5, 10), copy=False)
+        ).time,
         t.slice(key=range(10), copy=False).time,
     )
     assert np.allclose(
-        (t.slice(key=range(5), copy=False) + t.slice(key=range(5, 10), copy=False)).unitcell_vectors,
+        (
+            t.slice(key=range(5), copy=False) + t.slice(key=range(5, 10), copy=False)
+        ).unitcell_vectors,
         t.slice(key=range(10), copy=False).unitcell_vectors,
     )
     assert np.allclose(
-        (t.slice(key=range(5), copy=False) + t.slice(key=range(5, 10), copy=False)).unitcell_lengths,
+        (
+            t.slice(key=range(5), copy=False) + t.slice(key=range(5, 10), copy=False)
+        ).unitcell_lengths,
         t.slice(key=range(10), copy=False).unitcell_lengths,
     )
     assert np.allclose(
-        (t.slice(key=range(5), copy=False) + t.slice(key=range(5, 10), copy=False)).unitcell_angles,
+        (
+            t.slice(key=range(5), copy=False) + t.slice(key=range(5, 10), copy=False)
+        ).unitcell_angles,
         t.slice(key=range(10), copy=False).unitcell_angles,
     )
 
+
 def test_slice_2(
-        intraj_prep=data_path("traj_prep.xtc"),
-        intraj_prep_top=data_path("traj_prep_top.pdb")
+    intraj_prep=data_path("traj_prep.xtc"),
+    intraj_prep_top=data_path("traj_prep_top.pdb"),
 ):
     t = md.load(intraj_prep, top=intraj_prep_top)
-    
+
     # with copying
     assert t[0] == t[[0, 1]][0]
     # without copying (in place)
     assert t.slice(key=0, copy=False) == t.slice(key=[0, 1], copy=True)[0]
+
 
 def test_read_path(ref_traj, monkeypatch):
     if ref_traj.fext in ("nc"):
@@ -179,7 +194,8 @@ def test_read_path(ref_traj, monkeypatch):
             m.setitem(sys.modules, "netCDF4", None)
             md.load(data_path(ref_traj.fn), top=data_path("native.pdb"))
 
-    md.load(data_path(ref_traj.fn), top=data_path("native.pdb")) 
+    md.load(data_path(ref_traj.fn), top=data_path("native.pdb"))
+
 
 def test_write_path(write_traj, monkeypatch):
     # NOTE: Relevant, once topology formats are radded
@@ -196,13 +212,14 @@ def test_write_path(write_traj, monkeypatch):
                 pytest.skip(f"{write_traj.fext} needs to write unitcells")
         t.save(Path(write_traj.fn))
 
-    if write_traj.fext in ('nc'):
+    if write_traj.fext in ("nc"):
         # Running with scipy
         with monkeypatch.context() as m:
-            m.setitem(sys.modules, 'netCDF4', None)
+            m.setitem(sys.modules, "netCDF4", None)
             test_base(write_traj)
-    
+
     test_base(write_traj)
+
 
 def test_read_write(ref_traj, write_traj, monkeypatch):
     if write_traj.fext in ("ncrst", "rst7"):
@@ -213,27 +230,27 @@ def test_read_write(ref_traj, write_traj, monkeypatch):
     def test_base(ref_traj, write_traj):
         top = data_path("native.pdb")
         t = md.load(data_path(ref_traj.fn), top=top)
-    
+
         if t.unitcell_vectors is None:
             if write_traj.fext in ("dtr", "lammpstrj"):
                 pytest.skip(f"{write_traj.fext} needs to write unitcells")
-    
+
         t.save(write_traj.fn)
         t2 = md.load(write_traj.fn, top=top)
         assert np.allclose(
-            t.xyz, t2.xyz, 
-            atol=precision2(ref_traj.fext, write_traj.fext)
+            t.xyz, t2.xyz, atol=precision2(ref_traj.fext, write_traj.fext)
         )
         if has_time_info(write_traj.fext):
             assert np.allclose(t.time, t2.time, atol=1e-03)
-    
-    if write_traj.fext in ('nc') or ref_traj.fext in ('nc'):
+
+    if write_traj.fext in ("nc") or ref_traj.fext in ("nc"):
         # Running with scipy
         with monkeypatch.context() as m:
-            m.setitem(sys.modules, 'netCDF4', None)
+            m.setitem(sys.modules, "netCDF4", None)
             test_base(ref_traj, write_traj)
-    
+
     test_base(ref_traj, write_traj)
+
 
 def test_load(ref_traj, monkeypatch):
     def test_base(ref_traj):
@@ -251,7 +268,7 @@ def test_load(ref_traj, monkeypatch):
             top=nat,
             discard_overlapping_frames=True,
         )
-    
+
         # these don't actually overlap, so discard_overlapping_frames should
         # have no effect. the overlap is between the last frame of one and the
         # first frame of the next.
@@ -259,37 +276,39 @@ def test_load(ref_traj, monkeypatch):
         assert np.allclose(t0.n_frames * num_block, t2.n_frames)
         assert np.allclose(t3.n_frames, t2.n_frames)
 
-    if ref_traj.fext in ('nc'):
+    if ref_traj.fext in ("nc"):
         # Running with scipy
         with monkeypatch.context() as m:
-            m.setitem(sys.modules, 'netCDF4', None)
+            m.setitem(sys.modules, "netCDF4", None)
             test_base(ref_traj)
-    
+
     test_base(ref_traj)
+
 
 def test_float_atom_indices_exception(ref_traj, monkeypatch):
     def test_base(ref_traj):
         # Is an informative error message given when you supply floats for atom_indices?
         top = md.load(data_path("native.pdb")).topology
-    
+
         try:
             md.load(data_path(ref_traj.fn), atom_indices=[0.5, 1.3], top=top)
         except ValueError as e:
-            assert e.args[0] == "indices must be of an integer type. float64 is not an integer type"
+            assert (
+                e.args[0]
+                == "indices must be of an integer type. float64 is not an integer type"
+            )
 
-    if ref_traj.fext in ('nc'):
+    if ref_traj.fext in ("nc"):
         # Running with scipy
         with monkeypatch.context() as m:
-            m.setitem(sys.modules, 'netCDF4', None)
+            m.setitem(sys.modules, "netCDF4", None)
             test_base(ref_traj)
-    
+
     test_base(ref_traj)
 
 
 def test_restrict_atoms():
-    traj = md.load(
-        data_path("traj_prep.xtc"), top=data_path("traj_prep_top.pdb")
-    )
+    traj = md.load(data_path("traj_prep.xtc"), top=data_path("traj_prep_top.pdb"))
     time_address = traj.time.ctypes.data
 
     desired_atom_indices = [0, 1, 2, 5]
@@ -303,8 +322,7 @@ def test_restrict_atoms():
     assert np.allclose(traj.n_residues, traj.topology._numResidues)
     assert np.allclose(traj.n_atoms, traj.topology._numAtoms)
     assert np.allclose(
-        np.array([a.index for a in traj.topology.atoms]), 
-        np.arange(traj.n_atoms)
+        np.array([a.index for a in traj.topology.atoms]), np.arange(traj.n_atoms)
     )
 
     # assert that the time field was not copied
@@ -312,9 +330,7 @@ def test_restrict_atoms():
 
 
 def test_restrict_atoms_not_inplace():
-    traj = md.load(
-        data_path("traj_prep.xtc"), top=data_path("traj_prep_top.pdb")
-    )
+    traj = md.load(data_path("traj_prep.xtc"), top=data_path("traj_prep_top.pdb"))
     traj_backup = md.load(
         data_path("traj_prep.xtc"), top=data_path("traj_prep_top.pdb")
     )
@@ -325,9 +341,7 @@ def test_restrict_atoms_not_inplace():
     # make sure the original one was not modified
     assert np.allclose(traj.xyz, traj_backup.xyz)
     assert np.all(
-        [i == j for i, j in zip(
-            traj.topology.atoms, traj_backup.topology.atoms
-        )]
+        [i == j for i, j in zip(traj.topology.atoms, traj_backup.topology.atoms)]
     )
 
     assert np.allclose(list(range(4)), [a.index for a in sliced.top.atoms])
@@ -337,7 +351,9 @@ def test_restrict_atoms_not_inplace():
     assert np.allclose(len(sliced.top._bonds), 2)
     assert np.allclose(sliced.n_residues, sliced.topology._numResidues)
     assert np.allclose(sliced.n_atoms, sliced.topology._numAtoms)
-    assert np.allclose(np.array([a.index for a in sliced.topology.atoms]), np.arange(sliced.n_atoms))
+    assert np.allclose(
+        np.array([a.index for a in sliced.topology.atoms]), np.arange(sliced.n_atoms)
+    )
 
     # make sure the two don't alias the same memory
     assert traj.time.ctypes.data != sliced.time.ctypes.data
@@ -366,9 +382,7 @@ def test_pdb_unitcell_loadsave(tmpdir):
     tref.save(fn)
 
     tnew = md.load(fn)
-    assert np.allclose(
-        tref.unitcell_vectors, tnew.unitcell_vectors, atol=1e-03
-    )
+    assert np.allclose(tref.unitcell_vectors, tnew.unitcell_vectors, atol=1e-03)
 
 
 def test_load_combination(ref_traj, monkeypatch):
@@ -378,11 +392,11 @@ def test_load_combination(ref_traj, monkeypatch):
     def test_base(ref_traj):
         topology = md.load(data_path("native.pdb")).topology
         ainds = np.array([a.index for a in topology.atoms if a.element.symbol == "C"])
-    
+
         no_kwargs = md.load(data_path(ref_traj.fn), top=topology)
         strided3 = md.load(data_path(ref_traj.fn), top=topology, stride=3)
         subset = md.load(data_path(ref_traj.fn), top=topology, atom_indices=ainds)
-    
+
         # test 1
         t1 = no_kwargs
         t2 = strided3
@@ -390,10 +404,8 @@ def test_load_combination(ref_traj, monkeypatch):
         assert np.allclose(t1.time[::3], t2.time)
         if t1.unitcell_vectors is not None:
             assert np.allclose(t1.unitcell_vectors[::3], t2.unitcell_vectors)
-        assert np.all(
-            [i == j for i, j in zip(t1.topology.atoms, t2.topology.atoms)]
-        )
-    
+        assert np.all([i == j for i, j in zip(t1.topology.atoms, t2.topology.atoms)])
+
         # test 2
         t1 = no_kwargs
         t2 = subset
@@ -402,17 +414,15 @@ def test_load_combination(ref_traj, monkeypatch):
         if t1.unitcell_vectors is not None:
             assert np.allclose(t1.unitcell_vectors, t2.unitcell_vectors)
         assert np.all(
-            [i == j for i, j in zip(
-                t1.topology.subset(ainds).atoms, t2.topology.atoms
-            )]
+            [i == j for i, j in zip(t1.topology.subset(ainds).atoms, t2.topology.atoms)]
         )
 
-    if ref_traj.fext in ('nc'):
+    if ref_traj.fext in ("nc"):
         # Running with scipy
         with monkeypatch.context() as m:
-            m.setitem(sys.modules, 'netCDF4', None)
+            m.setitem(sys.modules, "netCDF4", None)
             test_base(ref_traj)
-    
+
     test_base(ref_traj)
 
 
@@ -483,7 +493,7 @@ def test_seek_read_mode(ref_traj, monkeypatch):
         point = 0
         xyz = md.load(data_path(fn), top=data_path("native.pdb")).xyz
         length = len(xyz)
-    
+
         with fobj(data_path(fn)) as f:
             for i in range(100):
                 r = np.random.rand()
@@ -500,14 +510,16 @@ def test_seek_read_mode(ref_traj, monkeypatch):
                     if point + offset < length:
                         read = f.read(offset)
                         # NOTE: Relevant, once XYZ is readded
-                        #if fobj not in [
+                        # if fobj not in [
                         #    md.formats.LH5TrajectoryFile,
                         #    md.formats.XYZTrajectoryFile,
-                        #]:
+                        # ]:
                         #    read = read[0]
                         read = read[0]
                         readlength = len(read)
-                        read = biotraj.utils.in_units_of(read, f.distance_unit, "nanometers")
+                        read = biotraj.utils.in_units_of(
+                            read, f.distance_unit, "nanometers"
+                        )
                         assert np.allclose(xyz[point : point + offset], read)
                         point += readlength
                 elif r < 0.75:
@@ -524,15 +536,15 @@ def test_seek_read_mode(ref_traj, monkeypatch):
                     offset = np.random.randint(100)
                     f.seek(offset, 0)
                     point = offset
-    
+
                 assert np.allclose(f.tell(), point)
 
-    if ref_traj.fext in ('nc'):
+    if ref_traj.fext in ("nc"):
         # Running with scipy
         with monkeypatch.context() as m:
-            m.setitem(sys.modules, 'netCDF4', None)
+            m.setitem(sys.modules, "netCDF4", None)
             test_base(ref_traj)
-    
+
     test_base(ref_traj)
 
 
@@ -543,19 +555,21 @@ def test_load_frame(ref_traj, monkeypatch):
     def test_base(ref_traj):
         trajectory = md.load(data_path(ref_traj.fn), top=data_path("native.pdb"))
         rand = np.random.randint(len(trajectory))
-        frame = md.load_frame(data_path(ref_traj.fn), index=rand, top=data_path("native.pdb"))
-    
+        frame = md.load_frame(
+            data_path(ref_traj.fn), index=rand, top=data_path("native.pdb")
+        )
+
         assert np.allclose(trajectory[rand].xyz, frame.xyz)
         assert np.allclose(trajectory[rand].unitcell_vectors, frame.unitcell_vectors)
         if has_time_info(ref_traj.fext):
             assert np.allclose(trajectory[rand].time, frame.time)
 
-    if ref_traj.fext in ('nc'):
+    if ref_traj.fext in ("nc"):
         # Running with scipy
         with monkeypatch.context() as m:
-            m.setitem(sys.modules, 'netCDF4', None)
+            m.setitem(sys.modules, "netCDF4", None)
             test_base(ref_traj)
-    
+
     test_base(ref_traj)
 
 
@@ -572,12 +586,12 @@ def test_iterload(write_traj, monkeypatch):
 
     def test_base(write_traj):
         t_ref = md.load(data_path("frame0.xtc"), top=data_path("frame0.pdb"))[:20]
-    
+
         if write_traj.fext in ("ncrst", "rst7"):
             pytest.skip("Only 1 frame per file format")
-    
+
         t_ref.save(write_traj.fn)
-    
+
         for stride in [1, 2, 3]:
             loaded = md.load(write_traj.fn, top=t_ref, stride=stride)
             iterloaded = functools.reduce(
@@ -589,12 +603,12 @@ def test_iterload(write_traj, monkeypatch):
             assert np.allclose(loaded.unitcell_angles, iterloaded.unitcell_angles)
             assert np.allclose(loaded.unitcell_lengths, iterloaded.unitcell_lengths)
 
-    if write_traj.fext in ('nc'):
+    if write_traj.fext in ("nc"):
         # Running with scipy
         with monkeypatch.context() as m:
-            m.setitem(sys.modules, 'netCDF4', None)
+            m.setitem(sys.modules, "netCDF4", None)
             test_base(write_traj)
-    
+
     test_base(write_traj)
 
 
@@ -609,7 +623,7 @@ def test_iterload_skip(ref_traj, monkeypatch):
     def test_base(ref_traj):
         top = md.load(data_path("native.pdb"))
         t_ref = md.load(data_path(ref_traj.fn), top=top)
-    
+
         for cs in [0, 1, 11, 100]:
             for skip in [0, 1, 20, 101]:
                 t = functools.reduce(
@@ -622,12 +636,12 @@ def test_iterload_skip(ref_traj, monkeypatch):
                     [i == j for i, j in zip(t_ref.topology.atoms, t.topology.atoms)]
                 )
 
-    if ref_traj.fext in ('nc'):
+    if ref_traj.fext in ("nc"):
         # Running with scipy
         with monkeypatch.context() as m:
-            m.setitem(sys.modules, 'netCDF4', None)
+            m.setitem(sys.modules, "netCDF4", None)
             test_base(ref_traj)
-    
+
     test_base(ref_traj)
 
 
@@ -672,12 +686,12 @@ def test_save_load(write_traj, monkeypatch):
             assert np.allclose(t.unitcell_angles, t_ref.unitcell_angles)
             assert np.allclose(t.unitcell_lengths, t_ref.unitcell_lengths)
 
-    if write_traj.fext in ('nc'):
+    if write_traj.fext in ("nc"):
         # Running with scipy
         with monkeypatch.context() as m:
-            m.setitem(sys.modules, 'netCDF4', None)
+            m.setitem(sys.modules, "netCDF4", None)
             test_base(write_traj)
-    
+
     test_base(write_traj)
 
 
@@ -690,12 +704,12 @@ def test_force_overwrite(write_traj, monkeypatch):
         open(write_traj.fn, "w").close()
         t_ref.save(write_traj.fn, force_overwrite=True)
 
-    if write_traj.fext in ('nc'):
+    if write_traj.fext in ("nc"):
         # Running with scipy
         with monkeypatch.context() as m:
-            m.setitem(sys.modules, 'netCDF4', None)
+            m.setitem(sys.modules, "netCDF4", None)
             test_base(write_traj)
-    
+
     test_base(write_traj)
 
 
@@ -706,22 +720,17 @@ def test_force_noverwrite(write_traj, monkeypatch):
         with pytest.raises(IOError):
             t_ref.save(write_traj.fn, force_overwrite=False)
 
-    if write_traj.fext in ('nc'):
+    if write_traj.fext in ("nc"):
         # Running with scipy
         with monkeypatch.context() as m:
-            m.setitem(sys.modules, 'netCDF4', None)
+            m.setitem(sys.modules, "netCDF4", None)
             test_base(write_traj)
-    
+
     test_base(write_traj)
 
+
 def test_length():
-    files = [
-        "frame0.nc",
-        "frame0.xtc",
-        "frame0.trr",
-        "frame0.dcd",
-        "2EQQ.pdb"    
-    ]
+    files = ["frame0.nc", "frame0.xtc", "frame0.trr", "frame0.dcd", "2EQQ.pdb"]
 
     for file in files:
         opened = md.open(data_path(file))
@@ -738,7 +747,7 @@ def test_length():
 def test_unitcell(write_traj, monkeypatch):
     # make sure that bogus unitcell vectors are not saved
     # NOTE: Important if/once these fileformats are readded
-    #if write_traj.fext in ["rst7", "ncrst", "lammpstrj", "dtr"]:
+    # if write_traj.fext in ["rst7", "ncrst", "lammpstrj", "dtr"]:
     #    pytest.xfail(f"{write_traj.fext} seems to need unit vectors")
 
     def test_base(write_traj):
@@ -747,12 +756,12 @@ def test_unitcell(write_traj, monkeypatch):
         t.save(write_traj.fn)
         assert md.load(write_traj.fn, top=top).unitcell_vectors is None
 
-    if write_traj.fext in ('nc'):
+    if write_traj.fext in ("nc"):
         # Running with scipy
         with monkeypatch.context() as m:
-            m.setitem(sys.modules, 'netCDF4', None)
+            m.setitem(sys.modules, "netCDF4", None)
             test_base(write_traj)
-    
+
     test_base(write_traj)
 
 

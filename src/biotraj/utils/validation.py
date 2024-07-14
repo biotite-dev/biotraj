@@ -117,7 +117,9 @@ def ensure_type(
             # then we should reshape the scalar to be a 1d length-1 array
             val = np.array([val])
         else:
-            raise TypeError(f"{name} must be numpy array. You supplied type {type(val)}")
+            raise TypeError(
+                f"{name} must be numpy array. You supplied type {type(val)}"
+            )
 
     if warn_on_cast and val.dtype != dtype:
         warnings.warn(
@@ -142,7 +144,9 @@ def ensure_type(
         # dimension 1
         sentenel = object()
         error = ValueError(
-            "{} must be shape {}. You supplied  " "{}".format(name, str(shape).replace("None", "Any"), val.shape),
+            "{} must be shape {}. You supplied  " "{}".format(
+                name, str(shape).replace("None", "Any"), val.shape
+            ),
         )
         for a, b in zip_longest(val.shape, shape, fillvalue=sentenel):
             if a is sentenel or b is sentenel:
@@ -182,7 +186,9 @@ def cast_indices(indices):
 
     out = np.asarray(indices)
     if not issubclass(out.dtype.type, np.integer):
-        raise ValueError("indices must be of an integer type. %s is not an integer type" % out.dtype)
+        raise ValueError(
+            "indices must be of an integer type. %s is not an integer type" % out.dtype
+        )
 
     return out
 

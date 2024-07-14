@@ -121,7 +121,9 @@ class BaseUnit:
         Returns None.
         """
         if self.dimension != other.dimension:
-            raise TypeError("Cannot define conversion for BaseUnits with different dimensions.")
+            raise TypeError(
+                "Cannot define conversion for BaseUnits with different dimensions."
+            )
         assert factor != 0
         assert self is not other
         # import all transitive conversions
@@ -163,9 +165,13 @@ class BaseUnit:
         if self is other:
             return 1.0
         if self.dimension != other.dimension:
-            raise TypeError("Cannot get conversion for BaseUnits with different dimensions.")
+            raise TypeError(
+                "Cannot get conversion for BaseUnits with different dimensions."
+            )
         if other.name not in self._conversion_factor_to_by_name:
-            raise LookupError(f'No conversion defined from BaseUnit "{self}" to "{other}".')
+            raise LookupError(
+                f'No conversion defined from BaseUnit "{self}" to "{other}".'
+            )
         return self._conversion_factor_to_by_name[other.name]
 
 

@@ -29,16 +29,6 @@ from copy import deepcopy
 
 import numpy as np
 
-from .residue_names import _SOLVENT_TYPES
-from .topology import Topology
-from ..formats import (
-    DCDTrajectoryFile,
-    GroTrajectoryFile,
-    NetCDFTrajectoryFile,
-    PDBTrajectoryFile,
-    TRRTrajectoryFile,
-    XTCTrajectoryFile,
-)
 from biotraj.formats.gro import load_gro
 from biotraj.formats.prmtop import load_prmtop
 from biotraj.formats.psf import load_psf
@@ -52,6 +42,17 @@ from biotraj.utils import (
     in_units_of,
     lengths_and_angles_to_box_vectors,
 )
+
+from ..formats import (
+    DCDTrajectoryFile,
+    GroTrajectoryFile,
+    NetCDFTrajectoryFile,
+    PDBTrajectoryFile,
+    TRRTrajectoryFile,
+    XTCTrajectoryFile,
+)
+from .residue_names import _SOLVENT_TYPES
+from .topology import Topology
 
 __all__ = [
     "open",
@@ -147,10 +148,14 @@ def _parse_topology(top, **kwargs):
         topology = top
     elif isinstance(top, Trajectory):
         topology = top.topology
-    elif isinstance(top, (str, os.PathLike)) and (ext in [".pdb", ".pdb.gz", ".pdbx", ".cif", ".h5", ".lh5"]):
+    elif isinstance(top, (str, os.PathLike)) and (
+        ext in [".pdb", ".pdb.gz", ".pdbx", ".cif", ".h5", ".lh5"]
+    ):
         _traj = load_frame(top, 0, **kwargs)
         topology = _traj.topology
-    elif isinstance(top, (str, os.PathLike)) and (ext in [".prmtop", ".parm7", ".prm7"]):
+    elif isinstance(top, (str, os.PathLike)) and (
+        ext in [".prmtop", ".parm7", ".prm7"]
+    ):
         topology = load_prmtop(top, **kwargs)
     elif isinstance(top, (str, os.PathLike)) and (ext in [".psf"]):
         topology = load_psf(top, **kwargs)
@@ -363,7 +368,8 @@ def load(filename_or_filenames, discard_overlapping_frames=False, **kwargs):
         )
     elif len(set(extensions)) > 1:
         raise TypeError(
-            "Each filename must have the same extension. " "Received: %s" % ", ".join(set(extensions)),
+            "Each filename must have the same extension. "
+            "Received: %s" % ", ".join(set(extensions)),
         )
 
     # pre-loads the topology from PDB for major performance boost.
@@ -439,7 +445,11 @@ def load(filename_or_filenames, discard_overlapping_frames=False, **kwargs):
 
     # Only do this monkey patching if needed in order not to
     # modify the output topology
-    if ("top" in kwargs) and (kwargs.get("atom_indices", None) is not None) and (len(filename_or_filenames) > 0):
+    if (
+        ("top" in kwargs)
+        and (kwargs.get("atom_indices", None) is not None)
+        and (len(filename_or_filenames) > 0)
+    ):
         # In case only a part of the atoms were selected
         # I get the right topology that
         # kwargs['top'].subset shall return
@@ -552,7 +562,13 @@ def iterload(filename, chunk=100, **kwargs):
             i += chunk
             yield traj
     else:
-        with (lambda x: (open(x, n_atoms=topology.n_atoms) if extension in (".crd", ".mdcrd") else open(filename)))(
+        with (
+            lambda x: (
+                open(x, n_atoms=topology.n_atoms)
+                if extension in (".crd", ".mdcrd")
+                else open(filename)
+            )
+        )(
             filename,
         ) as f:
             if skip > 0:
@@ -833,7 +849,8 @@ class Trajectory:
 
         if not len(vectors) == len(self):
             raise TypeError(
-                "unitcell_vectors must be the same length as " "the trajectory. you provided %s" % str(vectors),
+                "unitcell_vectors must be the same length as "
+                "the trajectory. you provided %s" % str(vectors),
             )
 
         v1 = vectors[:, 0, :]
@@ -1052,7 +1069,9 @@ class Trajectory:
         if ref_atom_indices is None:
             ref_atom_indices = atom_indices
 
-        if not isinstance(ref_atom_indices, slice) and (len(ref_atom_indices) != len(atom_indices)):
+        if not isinstance(ref_atom_indices, slice) and (
+            len(ref_atom_indices) != len(atom_indices)
+        ):
             raise ValueError("Number of atoms must be consistent!")
 
         n_frames = self.xyz.shape[0]
@@ -1127,7 +1146,8 @@ class Trajectory:
                 raise TypeError("You can only join Trajectory instances")
             if not all(self.n_atoms == o.n_atoms for o in other):
                 raise ValueError(
-                    "Number of atoms in self (%d) is not equal " "to number of atoms in other" % (self.n_atoms),
+                    "Number of atoms in self (%d) is not equal "
+                    "to number of atoms in other" % (self.n_atoms),
                 )
             if check_topology and not all(self.topology == o.topology for o in other):
                 raise ValueError("The topologies of the Trajectories are not the same")
@@ -1318,7 +1338,8 @@ class Trajectory:
 
         if (topology is not None) and (topology._numAtoms != self.n_atoms):
             raise ValueError(
-                f"Number of atoms in xyz ({self.n_atoms}) and " f"in topology ({topology._numAtoms}) don't match",
+                f"Number of atoms in xyz ({self.n_atoms}) and "
+                f"in topology ({topology._numAtoms}) don't match",
             )
 
     def openmm_positions(self, frame):
@@ -1415,7 +1436,7 @@ class Trajectory:
             ".xyz.gz": self.save_xyz,
             ".gro": self.save_gro,
             ".rst7": self.save_amberrst7,
-            #".dtr": self.save_dtr,
+            # ".dtr": self.save_dtr,
             ".gsd": self.save_gsd,
         }
 
@@ -1638,9 +1659,9 @@ class Trajectory:
                 cell_angles=self.unitcell_angles,
             )
 
-    #def save_dtr(self, filename, force_overwrite=True):
+    # def save_dtr(self, filename, force_overwrite=True):
     #    """Save trajectory to DESMOND DTR format
-#
+    #
     #    Parameters
     #    ----------
     #    filename : path-like
@@ -1679,7 +1700,8 @@ class Trajectory:
         if self._have_unitcell:
             if not np.all(self.unitcell_angles == 90):
                 raise ValueError(
-                    "Only rectilinear boxes can be saved to mdcrd files. " f"Your angles are {self.unitcell_angles}",
+                    "Only rectilinear boxes can be saved to mdcrd files. "
+                    f"Your angles are {self.unitcell_angles}",
                 )
 
         with MDCRDTrajectoryFile(
@@ -2020,7 +2042,11 @@ class Trajectory:
                     raise ValueError(type + "is not a valid solvent type")
                 solvent_types.remove(type)
 
-        atom_indices = [atom.index for atom in self.topology.atoms if atom.residue.name not in solvent_types]
+        atom_indices = [
+            atom.index
+            for atom in self.topology.atoms
+            if atom.residue.name not in solvent_types
+        ]
 
         return self.atom_slice(atom_indices, inplace=inplace)
 
@@ -2218,9 +2244,13 @@ class Trajectory:
 
         # Expand molecules into atom indices
         anchor_molecules_atom_indices = [
-            np.fromiter((a.index for a in mol), dtype=np.int32) for mol in anchor_molecules
+            np.fromiter((a.index for a in mol), dtype=np.int32)
+            for mol in anchor_molecules
         ]
-        other_molecules_atom_indices = [np.fromiter((a.index for a in mol), dtype=np.int32) for mol in other_molecules]
+        other_molecules_atom_indices = [
+            np.fromiter((a.index for a in mol), dtype=np.int32)
+            for mol in other_molecules
+        ]
 
         if inplace:
             result = self

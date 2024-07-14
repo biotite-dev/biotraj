@@ -274,7 +274,12 @@ def rmsd_qcp(conformation1, conformation2):
     # two of the coefficients
     C2 = -2.0 * (Sxx2 + Syy2 + Szz2 + Sxy2 + Syx2 + Sxz2 + Szx2 + Syz2 + Szy2)
     C1 = 8.0 * (
-        Sxx * Syz * Szy + Syy * Szx * Sxz + Szz * Sxy * Syx - Sxx * Syy * Szz - Syz * Szx * Sxy - Szy * Syx * Sxz
+        Sxx * Syz * Szy
+        + Syy * Szx * Sxz
+        + Szz * Sxy * Syx
+        - Sxx * Syy * Szz
+        - Syz * Szx * Sxy
+        - Szy * Syx * Sxz
     )
 
     SxzpSzx = Sxz + Szx
@@ -290,7 +295,8 @@ def rmsd_qcp(conformation1, conformation2):
     # the other coefficient
     C0 = (
         Sxy2Sxz2Syx2Szx2 * Sxy2Sxz2Syx2Szx2
-        + (Sxx2Syy2Szz2Syz2Szy2 + SyzSzymSyySzz2) * (Sxx2Syy2Szz2Syz2Szy2 - SyzSzymSyySzz2)
+        + (Sxx2Syy2Szz2Syz2Szy2 + SyzSzymSyySzz2)
+        * (Sxx2Syy2Szz2Syz2Szy2 - SyzSzymSyySzz2)
         + (-(SxzpSzx) * (SyzmSzy) + (SxymSyx) * (SxxmSyy - Szz))
         * (-(SxzmSzx) * (SyzpSzy) + (SxymSyx) * (SxxmSyy + Szz))
         + (-(SxzpSzx) * (SyzpSzy) - (SxypSyx) * (SxxpSyy - Szz))
