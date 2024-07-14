@@ -1909,7 +1909,7 @@ class Trajectory:
         -------
         self
         """
-        from mdtraj import _rmsd
+        from biotraj import _rmsd
 
         if mass_weighted and self.top is not None:
             self.xyz -= distance.compute_center_of_mass(self)[:, np.newaxis, :]

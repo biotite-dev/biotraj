@@ -1,3 +1,5 @@
+import warnings
+
 from .delay_import import import_
 from .validation import cast_indices, check_random_state, ensure_type
 from .unit import in_units_of
