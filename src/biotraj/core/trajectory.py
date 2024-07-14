@@ -33,7 +33,6 @@ from biotraj.formats.gro import load_gro
 from biotraj.formats.prmtop import load_prmtop
 from biotraj.formats.psf import load_psf
 from biotraj.formats.registry import FormatRegistry
-from biotraj.geometry import _geometry, distance
 from biotraj.utils import (
     box_vectors_to_lengths_and_angles,
     cast_indices,
@@ -159,16 +158,8 @@ def _parse_topology(top, **kwargs):
         topology = load_prmtop(top, **kwargs)
     elif isinstance(top, (str, os.PathLike)) and (ext in [".psf"]):
         topology = load_psf(top, **kwargs)
-    elif isinstance(top, (str, os.PathLike)) and (ext in [".mol2"]):
-        topology = load_mol2(top, **kwargs).topology
     elif isinstance(top, (str, os.PathLike)) and (ext in [".gro"]):
         topology = load_gro(top, **kwargs).topology
-    elif isinstance(top, (str, os.PathLike)) and (ext in [".arc"]):
-        topology = load_arc(top, **kwargs).topology
-    elif isinstance(top, (str, os.PathLike)) and (ext in [".hoomdxml"]):
-        topology = load_hoomdxml(top, **kwargs).topology
-    elif isinstance(top, (str, os.PathLike)) and (ext in [".gsd"]):
-        topology = load_gsd_topology(top, **kwargs)
     elif isinstance(top, (str, os.PathLike)):
         raise OSError(
             "The topology is loaded by filename extension, and the "
@@ -1017,103 +1008,6 @@ class Trajectory:
     def __eq__(self, other):
         return self.__hash__() == other.__hash__()
 
-    # def describe(self):
-    #     """Diagnostic summary statistics on the trajectory"""
-    #     # What information do we want to display?
-    #     # Goals: easy to figure out if a trajectory is blowing up or contains
-    #     # bad data, easy to diagonose other problems. Generally give a
-    #     # high-level description of the data in the trajectory.
-    #     # Possibly show std. dev. of differnt coordinates in the trajectory
-    #     # or maybe its RMSD drift or something?
-    #     # Also, check for any NaNs or Infs in the data. Or other common issues
-    #     # like that?
-    #     # Note that pandas.DataFrame has a describe() method, which gives
-    #     # min/max/mean/std.dev./percentiles of each column in a DataFrame.
-    #     raise NotImplementedError()
-
-    def superpose(
-        self,
-        reference,
-        frame=0,
-        atom_indices=None,
-        ref_atom_indices=None,
-        parallel=True,
-    ):
-        """Superpose each conformation in this trajectory upon a reference
-
-        Parameters
-        ----------
-        reference : md.Trajectory
-            Align self to a particular frame in `reference`
-        frame : int
-            The index of the conformation in `reference` to align to.
-        atom_indices : array_like, or None
-            The indices of the atoms to superpose. If not
-            supplied, all atoms will be used.
-        ref_atom_indices : array_like, or None
-            Use these atoms on the reference structure. If not supplied,
-            the same atom indices will be used for this trajectory and the
-            reference one.
-        parallel : bool
-            Use OpenMP to run the superposition in parallel over multiple cores
-
-        Returns
-        -------
-        self
-        """
-        from mdtraj import _rmsd
-
-        if atom_indices is None:
-            atom_indices = slice(None)
-
-        if ref_atom_indices is None:
-            ref_atom_indices = atom_indices
-
-        if not isinstance(ref_atom_indices, slice) and (
-            len(ref_atom_indices) != len(atom_indices)
-        ):
-            raise ValueError("Number of atoms must be consistent!")
-
-        n_frames = self.xyz.shape[0]
-        self_align_xyz = np.asarray(self.xyz[:, atom_indices, :], order="c")
-        self_displace_xyz = np.asarray(self.xyz, order="c")
-        ref_align_xyz = np.array(
-            reference.xyz[frame, ref_atom_indices, :],
-            copy=True,
-            order="c",
-        ).reshape(1, -1, 3)
-
-        offset = np.mean(self_align_xyz, axis=1, dtype=np.float64).reshape(
-            n_frames,
-            1,
-            3,
-        )
-        self_align_xyz -= offset
-        if self_align_xyz.ctypes.data != self_displace_xyz.ctypes.data:
-            # when atom_indices is None, these two arrays alias the same memory
-            # so we only need to do the centering once
-            self_displace_xyz -= offset
-
-        ref_offset = ref_align_xyz[0].astype("float64").mean(0)
-        ref_align_xyz[0] -= ref_offset
-
-        self_g = np.einsum("ijk,ijk->i", self_align_xyz, self_align_xyz)
-        ref_g = np.einsum("ijk,ijk->i", ref_align_xyz, ref_align_xyz)
-
-        _rmsd.superpose_atom_major(
-            ref_align_xyz,
-            self_align_xyz,
-            ref_g,
-            self_g,
-            self_displace_xyz,
-            0,
-            parallel=parallel,
-        )
-
-        self_displace_xyz += ref_offset
-        self.xyz = self_displace_xyz
-        return self
-
     def join(self, other, check_topology=True, discard_overlapping_frames=False):
         """Join two trajectories together along the time/frame axis.
 
@@ -1427,17 +1321,8 @@ class Trajectory:
             ".dcd": self.save_dcd,
             ".nc": self.save_netcdf,
             ".netcdf": self.save_netcdf,
-            ".ncrst": self.save_netcdfrst,
-            ".crd": self.save_mdcrd,
-            ".mdcrd": self.save_mdcrd,
             ".ncdf": self.save_netcdf,
-            ".lammpstrj": self.save_lammpstrj,
-            ".xyz": self.save_xyz,
-            ".xyz.gz": self.save_xyz,
             ".gro": self.save_gro,
-            ".rst7": self.save_amberrst7,
-            # ".dtr": self.save_dtr,
-            ".gsd": self.save_gsd,
         }
 
     def save(self, filename, **kwargs):
@@ -1473,43 +1358,6 @@ class Trajectory:
 
         # run the saver, and return whatever output it gives
         return saver(filename, **kwargs)
-
-    def save_lammpstrj(self, filename, force_overwrite=True):
-        """Save trajectory to LAMMPS custom dump format
-
-        Parameters
-        ----------
-        filename : path-like
-            filesystem path in which to save the trajectory
-        force_overwrite : bool, default=True
-            Overwrite anything that exists at filename, if its already there
-        """
-        with LAMMPSTrajectoryFile(filename, "w", force_overwrite=force_overwrite) as f:
-            f.write(
-                xyz=in_units_of(self.xyz, Trajectory._distance_unit, f.distance_unit),
-                cell_lengths=in_units_of(
-                    self.unitcell_lengths,
-                    Trajectory._distance_unit,
-                    f.distance_unit,
-                ),
-                cell_angles=self.unitcell_angles,
-            )
-
-    def save_xyz(self, filename, force_overwrite=True):
-        """Save trajectory to .xyz format.
-
-        Parameters
-        ----------
-        filename : path-like
-            filesystem path in which to save the trajectory
-        force_overwrite : bool, default=True
-            Overwrite anything that exists at filename, if its already there
-        """
-        with XYZTrajectoryFile(filename, "w", force_overwrite=force_overwrite) as f:
-            f.write(
-                xyz=in_units_of(self.xyz, Trajectory._distance_unit, f.distance_unit),
-                types=[a.name for a in self.top.atoms],
-            )
 
     def save_pdb(self, filename, force_overwrite=True, bfactors=None):
         """Save trajectory to RCSB PDB format
@@ -1659,65 +1507,6 @@ class Trajectory:
                 cell_angles=self.unitcell_angles,
             )
 
-    # def save_dtr(self, filename, force_overwrite=True):
-    #    """Save trajectory to DESMOND DTR format
-    #
-    #    Parameters
-    #    ----------
-    #    filename : path-like
-    #        filesystem path in which to save the trajectory
-    #    force_overwrite : bool, default=True
-    #        Overwrite anything that exists at filenames, if its already there
-    #    """
-    #    self._check_valid_unitcell()
-    #    with DTRTrajectoryFile(
-    #        os.fspath(filename),
-    #        "w",
-    #        force_overwrite=force_overwrite,
-    #    ) as f:
-    #        f.write(
-    #            xyz=in_units_of(self.xyz, Trajectory._distance_unit, f.distance_unit),
-    #            cell_lengths=in_units_of(
-    #                self.unitcell_lengths,
-    #                Trajectory._distance_unit,
-    #                f.distance_unit,
-    #            ),
-    #            cell_angles=self.unitcell_angles,
-    #            times=self.time,
-    #        )
-
-    def save_mdcrd(self, filename, force_overwrite=True):
-        """Save trajectory to AMBER mdcrd format
-
-        Parameters
-        ----------
-        filename : path-like
-            filesystem path in which to save the trajectory
-        force_overwrite : bool, default=True
-            Overwrite anything that exists at filename, if its already there
-        """
-        self._check_valid_unitcell()
-        if self._have_unitcell:
-            if not np.all(self.unitcell_angles == 90):
-                raise ValueError(
-                    "Only rectilinear boxes can be saved to mdcrd files. "
-                    f"Your angles are {self.unitcell_angles}",
-                )
-
-        with MDCRDTrajectoryFile(
-            filename,
-            mode="w",
-            force_overwrite=force_overwrite,
-        ) as f:
-            f.write(
-                xyz=in_units_of(self.xyz, Trajectory._distance_unit, f.distance_unit),
-                cell_lengths=in_units_of(
-                    self.unitcell_lengths,
-                    Trajectory._distance_unit,
-                    f.distance_unit,
-                ),
-            )
-
     def save_netcdf(self, filename, force_overwrite=True):
         """Save trajectory in AMBER NetCDF format
 
@@ -1745,132 +1534,6 @@ class Trajectory:
                 cell_angles=self.unitcell_angles,
             )
 
-    def save_netcdfrst(self, filename, force_overwrite=True):
-        """Save trajectory in AMBER NetCDF restart format
-
-        Parameters
-        ----------
-        filename : path-like
-            filesystem path in which to save the restart
-        force_overwrite : bool, default=True
-            Overwrite anything that exists at filename, if it's already there
-
-        Notes
-        -----
-        NetCDF restart files can only store a single frame. If only one frame
-        exists, "filename" will be written.  Otherwise, "filename.#" will be
-        written, where # is a zero-padded number from 1 to the total number of
-        frames in the trajectory
-        """
-        self._check_valid_unitcell()
-        if self.n_frames == 1:
-            with AmberNetCDFRestartFile(
-                filename,
-                "w",
-                force_overwrite=force_overwrite,
-            ) as f:
-                coordinates = in_units_of(
-                    self._xyz,
-                    Trajectory._distance_unit,
-                    AmberNetCDFRestartFile.distance_unit,
-                )
-                lengths = in_units_of(
-                    self.unitcell_lengths,
-                    Trajectory._distance_unit,
-                    AmberNetCDFRestartFile.distance_unit,
-                )
-                f.write(
-                    coordinates=coordinates,
-                    time=self.time[0],
-                    cell_lengths=lengths,
-                    cell_angles=self.unitcell_angles,
-                )
-        else:
-            fmt = "%s.%%0%dd" % (filename, len(str(self.n_frames)))
-            for i in range(self.n_frames):
-                with AmberNetCDFRestartFile(
-                    fmt % (i + 1),
-                    "w",
-                    force_overwrite=force_overwrite,
-                ) as f:
-                    coordinates = in_units_of(
-                        self._xyz,
-                        Trajectory._distance_unit,
-                        AmberNetCDFRestartFile.distance_unit,
-                    )
-                    lengths = in_units_of(
-                        self.unitcell_lengths,
-                        Trajectory._distance_unit,
-                        AmberNetCDFRestartFile.distance_unit,
-                    )
-                    f.write(
-                        coordinates=coordinates[i],
-                        time=self.time[i],
-                        cell_lengths=lengths[i],
-                        cell_angles=self.unitcell_angles[i],
-                    )
-
-    def save_amberrst7(self, filename, force_overwrite=True):
-        """Save trajectory in AMBER ASCII restart format
-
-        Parameters
-        ----------
-        filename : path-like
-            filesystem path in which to save the restart
-        force_overwrite : bool, default=True
-            Overwrite anything that exists at filename, if it's already there
-
-        Notes
-        -----
-        Amber restart files can only store a single frame. If only one frame
-        exists, "filename" will be written.  Otherwise, "filename.#" will be
-        written, where # is a zero-padded number from 1 to the total number of
-        frames in the trajectory
-        """
-        self._check_valid_unitcell()
-        if self.n_frames == 1:
-            with AmberRestartFile(filename, "w", force_overwrite=force_overwrite) as f:
-                coordinates = in_units_of(
-                    self._xyz,
-                    Trajectory._distance_unit,
-                    AmberRestartFile.distance_unit,
-                )
-                lengths = in_units_of(
-                    self.unitcell_lengths,
-                    Trajectory._distance_unit,
-                    AmberRestartFile.distance_unit,
-                )
-                f.write(
-                    coordinates=coordinates,
-                    time=self.time[0],
-                    cell_lengths=lengths,
-                    cell_angles=self.unitcell_angles,
-                )
-        else:
-            fmt = "%s.%%0%dd" % (filename, len(str(self.n_frames)))
-            for i in range(self.n_frames):
-                with AmberRestartFile(
-                    fmt % (i + 1),
-                    "w",
-                    force_overwrite=force_overwrite,
-                ) as f:
-                    coordinates = in_units_of(
-                        self._xyz,
-                        Trajectory._distance_unit,
-                        AmberRestartFile.distance_unit,
-                    )
-                    lengths = in_units_of(
-                        self.unitcell_lengths,
-                        Trajectory._distance_unit,
-                        AmberRestartFile.distance_unit,
-                    )
-                    f.write(
-                        coordinates=coordinates[i],
-                        time=self.time[0],
-                        cell_lengths=lengths[i],
-                        cell_angles=self.unitcell_angles[i],
-                    )
-
     def save_gro(self, filename, force_overwrite=True, precision=3):
         """Save trajectory in Gromacs .gro format
 
@@ -1892,53 +1555,6 @@ class Trajectory:
                 self.unitcell_vectors,
                 precision=precision,
             )
-
-    def save_gsd(self, filename, force_overwrite=True):
-        """Save trajectory to HOOMD GSD format
-
-        Parameters
-        ----------
-        filename : path-like
-            filesystem path in which to save the trajectory
-        force_overwrite : bool, default=True
-            Overwrite anything that exists at filenames, if its already there
-        """
-        if os.path.exists(filename) and not force_overwrite:
-            raise OSError('"%s" already exists' % filename)
-
-        self._check_valid_unitcell()
-        write_gsd(
-            filename,
-            self.xyz,
-            self.topology,
-            cell_lengths=self.unitcell_lengths,
-            cell_angles=self.unitcell_angles,
-        )
-
-    def center_coordinates(self, mass_weighted=False):
-        """Center each trajectory frame at the origin (0,0,0).
-
-        This method acts inplace on the trajectory.  The centering can
-        be either uniformly weighted (mass_weighted=False) or weighted by
-        the mass of each atom (mass_weighted=True).
-
-        Parameters
-        ----------
-        mass_weighted : bool, optional (default = False)
-            If True, weight atoms by mass when removing COM.
-
-        Returns
-        -------
-        self
-        """
-        from biotraj import _rmsd
-
-        if mass_weighted and self.top is not None:
-            self.xyz -= distance.compute_center_of_mass(self)[:, np.newaxis, :]
-        else:
-            self._rmsd_traces = _rmsd._center_inplace_atom_major(self._xyz)
-
-        return self
 
     @deprecated("restrict_atoms was replaced by atom_slice and will be removed in 2.0")
     def restrict_atoms(self, atom_indices, inplace=True):
@@ -2144,135 +1760,3 @@ class Trajectory:
     @property
     def _have_unitcell(self):
         return self._unitcell_lengths is not None and self._unitcell_angles is not None
-
-    def make_molecules_whole(self, inplace=False, sorted_bonds=None):
-        """Only make molecules whole
-
-        Parameters
-        ----------
-        inplace : bool
-            If False, a new Trajectory is created and returned.
-            If True, this Trajectory is modified directly.
-        sorted_bonds : array of shape (n_bonds, 2)
-            Pairs of atom indices that define bonds, in sorted order.
-            If not specified, these will be determined from the trajectory's
-            topology.
-
-        See Also
-        --------
-        image_molecules
-        """
-        unitcell_vectors = self.unitcell_vectors
-        if unitcell_vectors is None:
-            raise ValueError("This Trajectory does not define a periodic unit cell")
-
-        if inplace:
-            result = self
-        else:
-            # This slice-based assignment ensures all numpy arrays in result
-            #  are copies, not views, of the corresponding items in self:
-            result = self[:]
-
-        if sorted_bonds is None:
-            sorted_bonds = sorted(self._topology.bonds, key=lambda bond: bond[0].index)
-            sorted_bonds = np.asarray(
-                [[b0.index, b1.index] for b0, b1 in sorted_bonds],
-                dtype=np.int32,
-            )
-
-        box = np.asarray(result.unitcell_vectors, order="c")
-        _geometry.whole_molecules(result.xyz, box, sorted_bonds)
-        if not inplace:
-            return result
-        return self
-
-    def image_molecules(
-        self,
-        inplace=False,
-        anchor_molecules=None,
-        other_molecules=None,
-        sorted_bonds=None,
-        make_whole=True,
-    ):
-        """Recenter and apply periodic boundary conditions to the molecules in each frame of the trajectory.
-
-        This method is useful for visualizing a trajectory in which molecules were not wrapped
-        to the periodic unit cell, or in which the macromolecules are not centered with respect
-        to the solvent.  It tries to be intelligent in deciding what molecules to center, so you
-        can simply call it and trust that it will "do the right thing".
-
-        Parameters
-        ----------
-        inplace : bool, default=False
-            If False, a new Trajectory is created and returned.  If True, this Trajectory
-            is modified directly.
-        anchor_molecules : list of atom sets, optional, default=None
-            Molecule that should be treated as an "anchor".
-            These molecules will be centered in the box and put near each other.
-            If not specified, anchor molecules are guessed using a heuristic.
-        other_molecules : list of atom sets, optional, default=None
-            Molecules that are not anchors. If not specified,
-            these will be molecules other than the anchor molecules
-        sorted_bonds : array of shape (n_bonds, 2)
-            Pairs of atom indices that define bonds, in sorted order.
-            If not specified, these will be determined from the trajectory's
-            topology. Only relevant if ``make_whole`` is True.
-        make_whole : bool
-            Whether to make molecules whole.
-
-        Returns
-        -------
-        traj : md.Trajectory
-            The return value is either ``self`` or the new trajectory,
-            depending on the value of ``inplace``.
-
-        See Also
-        --------
-        Topology.guess_anchor_molecules
-        """
-        unitcell_vectors = self.unitcell_vectors
-        if unitcell_vectors is None:
-            raise ValueError("This Trajectory does not define a periodic unit cell")
-
-        if anchor_molecules is None:
-            anchor_molecules = self.topology.guess_anchor_molecules()
-
-        if other_molecules is None:
-            # Determine other molecules by which molecules are not anchor molecules
-            molecules = self._topology.find_molecules()
-            other_molecules = [mol for mol in molecules if mol not in anchor_molecules]
-
-        # Expand molecules into atom indices
-        anchor_molecules_atom_indices = [
-            np.fromiter((a.index for a in mol), dtype=np.int32)
-            for mol in anchor_molecules
-        ]
-        other_molecules_atom_indices = [
-            np.fromiter((a.index for a in mol), dtype=np.int32)
-            for mol in other_molecules
-        ]
-
-        if inplace:
-            result = self
-        else:
-            result = self[:]
-        if make_whole and sorted_bonds is None:
-            sorted_bonds = sorted(self._topology.bonds, key=lambda bond: bond[0].index)
-            sorted_bonds = np.asarray(
-                [[b0.index, b1.index] for b0, b1 in sorted_bonds],
-                dtype=np.int32,
-            )
-        elif not make_whole:
-            sorted_bonds = None
-
-        box = np.asarray(result.unitcell_vectors, order="c")
-        _geometry.image_molecules(
-            result.xyz,
-            box,
-            anchor_molecules_atom_indices,
-            other_molecules_atom_indices,
-            sorted_bonds,
-        )
-        if not inplace:
-            return result
-        return self
