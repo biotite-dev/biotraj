@@ -132,6 +132,7 @@ def format_extensions():
 
     return [xtc, trr, dcd]
 
+
 write_version_py(VERSION, ISRELEASED, "src/biotraj/version.py")
 
 metadata = dict(
@@ -150,7 +151,7 @@ metadata = dict(
     cmdclass={"build_ext": build_ext},
     install_requires=[
         "numpy>=2.0",
-            "scipy>=1.14",
+        "scipy>=1.14",
         "pyparsing",
         "packaging",
     ],
