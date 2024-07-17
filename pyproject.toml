@@ -70,6 +70,17 @@ ignore = [
     "E501",
     # Due to * imports in `__init__.py` modules
     "F403",
+    # Additional necessary exceptions to remain comparable with MDTraj
+    "F401",
+    "F405",
+    "N801",
+    "N802",
+    "N803",
+    "N806",
+    "N813",
+    "N815",
+    "N816",
+    "N818",
 ]
 
 [tool.ruff.lint.isort]
