@@ -2,7 +2,7 @@ import os
 import subprocess
 import sys
 import tempfile
-from distutils.spawn import find_executable
+from shutil import which
 from os.path import join
 
 import numpy as np
@@ -26,7 +26,7 @@ def pdb_path():
 
 
 needs_cpptraj = pytest.mark.skipif(
-    find_executable("cpptraj") is None,
+    which("cpptraj") is None,
     reason=(
         "This test requires cpptraj from AmberTools to be installed "
         "(http://ambermd.org)."
