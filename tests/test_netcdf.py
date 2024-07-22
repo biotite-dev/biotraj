@@ -2,8 +2,8 @@ import os
 import subprocess
 import sys
 import tempfile
-from shutil import which
 from os.path import join
+from shutil import which
 
 import numpy as np
 import pytest
