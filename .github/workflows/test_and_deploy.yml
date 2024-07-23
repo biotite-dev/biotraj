@@ -61,7 +61,7 @@ jobs:
               && cibuildwheel --print-build-identifiers --platform macos \
           | jq -Rc '
             if (contains("x86_64")) then
-              {"dist": ., "os": "macos-latest-large"}
+              {"dist": ., "os": "macos-13"}
             else
               {"dist": ., "os": "macos-latest"}
             end
