@@ -44,10 +44,10 @@ jobs:
     runs-on: "ubuntu-latest"
     outputs:
       include: ${{ steps.set-matrix.outputs.include }}
-    # MAKE SURE THIS STAYS IN SYNC WITH THE LOWER GHA cibuildwheel
     steps:
       - uses: actions/checkout@v4
       - name: Install cibuildwheel
+        # MAKE SURE THIS STAYS IN SYNC WITH THE LOWER GHA cibuildwheel
         run: pipx install cibuildwheel==2.19.1
       - id: set-matrix
         # Select MacOS13/macos-latest-large for x86_64 Mac runners
