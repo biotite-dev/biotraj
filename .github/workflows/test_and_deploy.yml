@@ -58,13 +58,13 @@ jobs:
               cibuildwheel --print-build-identifiers --platform linux \
               | jq -nRc '{"dist": inputs, "os": "ubuntu-latest"}' \
               && cibuildwheel --print-build-identifiers --platform macos \
-              | jq -nRc '
-                if (inputs | contains("x86_64")) then
-                  {"dist": inputs, "os": "macos-11"}
-                else
-                  {"dist": inputs, "os": "macos-latest"}
-                end
-              ' \
+          | jq -Rc '
+            if (contains("x86_64")) then
+              {"dist": ., "os": "macos-11"}
+            else
+              {"dist": ., "os": "macos-latest"}
+            end
+          ' \
               && cibuildwheel --print-build-identifiers --platform windows \
               | jq -nRc '{"dist": inputs, "os": "windows-latest"}'
             } | jq -sc
