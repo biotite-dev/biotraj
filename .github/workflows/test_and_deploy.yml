@@ -37,8 +37,6 @@ jobs:
       run: ruff format --diff
     - name: Lint code base
       run: ruff check
-    - name: Check for trailing whitespace and newlines at the file ends
-
 
 
   generate-wheels-matrix:
@@ -46,13 +44,15 @@ jobs:
     runs-on: "ubuntu-latest"
     outputs:
       include: ${{ steps.set-matrix.outputs.include }}
+    # MAKE SURE THIS STAYS IN SYNC WITH THE LOWER GHA cibuildwheel
     steps:
       - uses: actions/checkout@v4
       - name: Install cibuildwheel
         run: pipx install cibuildwheel==2.19.1
       - id: set-matrix
-        # Select MacOS13 for x86_64 Mac runners, macos-latest for ARM
-        # -> macos-latest is not supported for x86_64 anymore
+        # Select MacOS13/macos-latest-large for x86_64 Mac runners
+        # and macos-latest for ARM 
+        # -> macos-latest is not supported for x86_64
         run: |
           MATRIX=$(
             {
