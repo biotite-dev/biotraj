@@ -52,6 +52,8 @@ jobs:
       - name: Install cibuildwheel
         run: pipx install cibuildwheel==2.19.1
       - id: set-matrix
+        # Select MacOS13 for x86_64 Mac runners, macos-latest for ARM
+        # -> macos-latest is not supported for x86_64 anymore
         run: |
           MATRIX=$(
             {
