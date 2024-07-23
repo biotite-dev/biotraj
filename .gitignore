@@ -55,4 +55,5 @@ biotite.egg-info
 # Ignore pycache
 **/__pycache__/
 
-
+# Ignore Ruff cache
+**/.ruff_cache

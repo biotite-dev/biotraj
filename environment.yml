@@ -24,7 +24,8 @@ dependencies:
   - requests >=2.12
   - scipy >=1.13
   - netcdf4 >=1.7.1
-
+  # Formatting and linting
+  - ruff >=0.5.1
   # Testing
   - pytest >=7.0
   - psutil >=5.9.0

@@ -168,14 +168,24 @@ def import_(module):
         try:
             message = MESSAGES[module]
         except KeyError:
-            message = "The code at {filename}:{line_number} requires the " + module + " package"
+            message = (
+                "The code at {filename}:{line_number} requires the "
+                + module
+                + " package"
+            )
 
-        frame, filename, line_number, function_name, lines, index = inspect.getouterframes(inspect.currentframe())[1]
+        frame, filename, line_number, function_name, lines, index = (
+            inspect.getouterframes(inspect.currentframe())[1]
+        )
 
         m = message.format(filename=os.path.basename(filename), line_number=line_number)
         m = textwrap.dedent(m)
 
-        bar = "\033[91m" + "#" * max(len(line) for line in m.split(os.linesep)) + "\033[0m"
+        bar = (
+            "\033[91m"
+            + "#" * max(len(line) for line in m.split(os.linesep))
+            + "\033[0m"
+        )
 
         print("", file=sys.stderr)
         print(bar, file=sys.stderr)

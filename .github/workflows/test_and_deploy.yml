@@ -19,7 +19,7 @@ env:
   CIBW_DEPENDENCY_VERSIONS: "pinned"
   # Once GHA and cibuildwheel are updated this can be removed
   # mussllinux takes 6+ hrs to build and test so ignore it
-  CIBW_TEST_SKIP: "*musllinux* *-macosx_arm64"
+  CIBW_TEST_SKIP: "*musllinux*"
 
 
 jobs:
@@ -37,9 +37,6 @@ jobs:
       run: ruff format --diff
     - name: Lint code base
       run: ruff check
-    - name: Check for trailing whitespace and newlines at the file ends
-      run: ruff check --preview --select W291,W292,W391 *
-
 
 
   generate-wheels-matrix:
@@ -53,13 +50,22 @@ jobs:
         # MAKE SURE THIS STAYS IN SYNC WITH THE LOWER GHA cibuildwheel
         run: pipx install cibuildwheel==2.19.1
       - id: set-matrix
+        # Select MacOS13/macos-latest-large for x86_64 Mac runners
+        # and macos-latest for ARM 
+        # -> macos-latest is not supported for x86_64
         run: |
           MATRIX=$(
             {
               cibuildwheel --print-build-identifiers --platform linux \
               | jq -nRc '{"dist": inputs, "os": "ubuntu-latest"}' \
               && cibuildwheel --print-build-identifiers --platform macos \
-              | jq -nRc '{"dist": inputs, "os": "macos-latest"}' \
+          | jq -Rc '
+            if (contains("x86_64")) then
+              {"dist": ., "os": "macos-13"}
+            else
+              {"dist": ., "os": "macos-latest"}
+            end
+          ' \
               && cibuildwheel --print-build-identifiers --platform windows \
               | jq -nRc '{"dist": inputs, "os": "windows-latest"}'
             } | jq -sc

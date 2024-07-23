@@ -120,10 +120,16 @@ hours = hour = minute.create_unit(scale=60.0, name="hour", symbol="hr")
 days = day = hour.create_unit(scale=24.0, name="day", symbol="day")
 weeks = week = day.create_unit(scale=7.0, name="week", symbol="week")
 years = year = day.create_unit(scale=365.25, name="julian year", symbol="a")
-centuries = centurys = century = year.create_unit(scale=100.0, name="century", symbol="century")
-millenia = milleniums = millenium = century.create_unit(scale=10.0, name="millenium", symbol="ka")
+centuries = centurys = century = year.create_unit(
+    scale=100.0, name="century", symbol="century"
+)
+millenia = milleniums = millenium = century.create_unit(
+    scale=10.0, name="millenium", symbol="ka"
+)
 
-fortnights = fortnight = day.create_unit(scale=14.0, name="fortnight", symbol="fortnight")
+fortnights = fortnight = day.create_unit(
+    scale=14.0, name="fortnight", symbol="fortnight"
+)
 
 ###################
 ### TEMPERATURE ###
@@ -132,7 +138,9 @@ fortnights = fortnight = day.create_unit(scale=14.0, name="fortnight", symbol="f
 kelvin_base_unit = BaseUnit(temperature_dimension, "kelvin", "K")
 kelvins = kelvin = Unit({kelvin_base_unit: 1.0})
 
-planck_temperature_base_unit = BaseUnit(temperature_dimension, "Planck temperature", "T_p")
+planck_temperature_base_unit = BaseUnit(
+    temperature_dimension, "Planck temperature", "T_p"
+)
 planck_temperature_base_unit.define_conversion_factor_to(kelvin_base_unit, 1.416784e32)
 
 ##############
@@ -144,7 +152,9 @@ elementary_charges = elementary_charge = Unit({elementary_charge_base_unit: 1.0}
 
 coulomb_base_unit = BaseUnit(charge_dimension, "coulomb", "C")
 # Exact conversion factor
-coulomb_base_unit.define_conversion_factor_to(elementary_charge_base_unit, 6.241509074460763e18)
+coulomb_base_unit.define_conversion_factor_to(
+    elementary_charge_base_unit, 6.241509074460763e18
+)
 coulombs = coulomb = Unit({coulomb_base_unit: 1.0})
 
 planck_charge_base_unit = BaseUnit(charge_dimension, "Planck charge", "q_P")
@@ -182,8 +192,12 @@ degree_base_unit = BaseUnit(angle_dimension, "degree", "deg")
 degree_base_unit.define_conversion_factor_to(radian_base_unit, math.pi / 180.0)
 degrees = degree = Unit({degree_base_unit: 1.0})
 
-arcminutes = arcminute = degree.create_unit(scale=1.0 / 60.0, name="arcminute", symbol="'")
-arcseconds = arcsecond = arcminute.create_unit(scale=1.0 / 60.0, name="arcsecond", symbol='"')
+arcminutes = arcminute = degree.create_unit(
+    scale=1.0 / 60.0, name="arcminute", symbol="'"
+)
+arcseconds = arcsecond = arcminute.create_unit(
+    scale=1.0 / 60.0, name="arcsecond", symbol='"'
+)
 
 ###################
 ### INFORMATION ###
@@ -247,13 +261,17 @@ hartree = hartrees = Unit({hartree_base_unit: 1.0})
 # In molecular simulations, "kilojoules" are in microscopic units
 # And you really only want to use kilojoules/mole.
 md_kilojoule_raw = gram * nanometer**2 / picosecond**2
-md_kilojoules = md_kilojoule = Unit({ScaledUnit(1.0, md_kilojoule_raw, "kilojoule", "kJ"): 1.0})
+md_kilojoules = md_kilojoule = Unit(
+    {ScaledUnit(1.0, md_kilojoule_raw, "kilojoule", "kJ"): 1.0}
+)
 kilojoules_per_mole = kilojoule_per_mole = md_kilojoule / mole
 
 calorie_base_unit = ScaledUnit(4.184, joule, "calorie", "cal")
 calories = calorie = Unit({calorie_base_unit: 1.0})
 define_prefixed_units(calorie_base_unit, module=sys.modules[__name__])
-md_kilocalories = md_kilocalorie = Unit({ScaledUnit(4.184, md_kilojoule, "kilocalorie", "kcal"): 1.0})
+md_kilocalories = md_kilocalorie = Unit(
+    {ScaledUnit(4.184, md_kilojoule, "kilocalorie", "kcal"): 1.0}
+)
 kilocalories_per_mole = kilocalorie_per_mole = md_kilocalorie / mole
 
 # Power

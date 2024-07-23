@@ -145,7 +145,9 @@ class Quantity:
                     # Notice that tuples, lists, and numpy.arrays can all be initialized with a list
                     new_container = Quantity([], unit)
                     for item in value:
-                        new_container.append(Quantity(item))  # Strips off units into list new_container._value
+                        new_container.append(
+                            Quantity(item)
+                        )  # Strips off units into list new_container._value
                     # __class__ trick does not work for numpy.arrays
                     try:
                         import numpy
@@ -214,7 +216,14 @@ class Quantity:
 
     def __repr__(self):
         """ """
-        return Quantity.__name__ + "(value=" + repr(self._value) + ", unit=" + str(self.unit) + ")"
+        return (
+            Quantity.__name__
+            + "(value="
+            + repr(self._value)
+            + ", unit="
+            + str(self.unit)
+            + ")"
+        )
 
     def format(self, format_spec):
         return format_spec % self._value + " " + str(self.unit.get_symbol())
@@ -319,7 +328,9 @@ class Quantity:
                 if d not in canonical_units:
                     canonical_units[d] = [u, exponent]
                 else:
-                    value_factor *= u.conversion_factor_to(canonical_units[d][0]) ** exponent
+                    value_factor *= (
+                        u.conversion_factor_to(canonical_units[d][0]) ** exponent
+                    )
                     canonical_units[d][1] += exponent
             new_base_units = {}
             for d in canonical_units:
@@ -384,11 +395,15 @@ class Quantity:
         multiplied by other.
         """
         if is_unit(other):
-            raise NotImplementedError("programmer is surprised __rmul__ was called instead of __mul__")
+            raise NotImplementedError(
+                "programmer is surprised __rmul__ was called instead of __mul__"
+            )
             # print "R unit * quantity"
         elif is_quantity(other):
             # print "R quantity * quantity"
-            raise NotImplementedError("programmer is surprised __rmul__ was called instead of __mul__")
+            raise NotImplementedError(
+                "programmer is surprised __rmul__ was called instead of __mul__"
+            )
         else:
             # print "scalar * quantity"
             return self._change_units_with_factor(self.unit, other, post_multiply=True)
@@ -423,9 +438,13 @@ class Quantity:
         """
         if is_unit(other):
             # print "R unit / quantity"
-            raise NotImplementedError("programmer is surprised __rtruediv__ was called instead of __truediv__")
+            raise NotImplementedError(
+                "programmer is surprised __rtruediv__ was called instead of __truediv__"
+            )
         elif is_quantity(other):
-            raise NotImplementedError("programmer is surprised __rtruediv__ was called instead of __truediv__")
+            raise NotImplementedError(
+                "programmer is surprised __rtruediv__ was called instead of __truediv__"
+            )
         else:
             # print "R scalar / quantity"
             return other * pow(self, -1.0)
@@ -662,7 +681,9 @@ class Quantity:
           and  result = value * factor when post_multiply is True
         """
         if not self.unit.is_compatible(other_unit):
-            raise TypeError(f'Unit "{self.unit}" is not compatible with Unit "{other_unit}".')
+            raise TypeError(
+                f'Unit "{self.unit}" is not compatible with Unit "{other_unit}".'
+            )
         f = self.unit.conversion_factor_to(other_unit)
         return self._change_units_with_factor(other_unit, f)
 
@@ -681,13 +702,19 @@ class Quantity:
             try:
                 # multiply operator, if it exists, is preferred
                 if post_multiply:
-                    value = self._value * factor  # works for number, numpy.array, or vec3, e.g.
+                    value = (
+                        self._value * factor
+                    )  # works for number, numpy.array, or vec3, e.g.
                 else:
-                    value = factor * self._value  # works for number, numpy.array, or vec3, e.g.
+                    value = (
+                        factor * self._value
+                    )  # works for number, numpy.array, or vec3, e.g.
                 result = Quantity(value, new_unit)
             except TypeError:
                 value = copy.deepcopy(self._value)
-                result = Quantity(self._scale_sequence(value, factor, post_multiply), new_unit)
+                result = Quantity(
+                    self._scale_sequence(value, factor, post_multiply), new_unit
+                )
         if new_unit.is_dimensionless():
             return result._value
         else:
@@ -715,7 +742,9 @@ class Quantity:
                             value[i] = factor * value[i]
             except TypeError:
                 if isinstance(value, tuple):
-                    value = tuple([self._scale_sequence(x, factor, post_multiply) for x in value])
+                    value = tuple(
+                        [self._scale_sequence(x, factor, post_multiply) for x in value]
+                    )
                 else:
                     for i in range(len(value)):
                         value[i] = self._scale_sequence(value[i], factor, post_multiply)
@@ -750,7 +779,9 @@ class Quantity:
             if self.unit.is_dimensionless() and is_dimensionless(value):
                 pass  # OK
             elif not self.unit.is_compatible(value.unit):
-                raise TypeError(f'Unit "{self.unit}" is not compatible with Unit "{value.unit}".')
+                raise TypeError(
+                    f'Unit "{self.unit}" is not compatible with Unit "{value.unit}".'
+                )
             self._value[key] = value / self.unit
             assert not is_quantity(self._value[key])
 

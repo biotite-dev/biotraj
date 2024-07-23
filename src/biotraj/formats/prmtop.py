@@ -191,7 +191,9 @@ def load_prmtop(filename, **kwargs):
             r = top.add_residue(res_name, c)
 
             if res_name in pdb.PDBTrajectoryFile._atomNameReplacements:
-                atom_replacements = pdb.PDBTrajectoryFile._atomNameReplacements[res_name]
+                atom_replacements = pdb.PDBTrajectoryFile._atomNameReplacements[
+                    res_name
+                ]
             else:
                 atom_replacements = {}
 

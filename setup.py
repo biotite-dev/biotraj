@@ -14,7 +14,6 @@ from setuptools import Extension, find_packages, setup
 
 from basesetup import (
     CompilerDetection,
-    StaticLibrary,
     build_ext,
     parse_setuppy_commands,
     write_version_py,
@@ -131,97 +130,8 @@ def format_extensions():
         extra_compile_args=compiler_args,
     )
 
-#    dtr = Extension(
-#        "biotraj.formats.dtr",
-#        sources=[
-#            "src/biotraj/formats/src/dtrplugin.cxx",
-#            "src/biotraj/formats/dtr.pyx",
-#        ],
-#        include_dirs=[
-#            "src/biotraj/formats/include/",
-#            "src/biotraj/formats/",
-#        ],
-#        define_macros=[("DESRES_READ_TIMESTEP2", 1)],
-#        language="c++",
-#        extra_compile_args=compiler_args,
-#        libraries=extra_cpp_libraries,
-#    )
+    return [xtc, trr, dcd]
 
-    return [xtc, trr, dcd]#, dtr]
-
-def geometry_extensions():
-    compiler.initialize()
-    compiler_args = (
-        compiler.compiler_args_openmp
-        + compiler.compiler_args_sse2
-        + compiler.compiler_args_sse3
-        + compiler.compiler_args_opt
-        + compiler.compiler_args_warn
-    )
-    define_macros = [("__NO_INTRINSICS", 1)] if compiler.disable_intrinsics else None
-    compiler_libraries = compiler.compiler_libraries_openmp + extra_cpp_libraries
-
-    return [
-        Extension(
-            "biotraj.geometry._geometry",
-            sources=[
-                "src/biotraj/geometry/src/sasa.cpp",
-                "src/biotraj/geometry/src/dssp.cpp",
-                "src/biotraj/geometry/src/geometry.cpp",
-                "src/biotraj/geometry/src/_geometry.pyx",
-            ],
-            include_dirs=[
-                "src/biotraj/geometry/include",
-                "src/biotraj/geometry/src/kernels",
-            ],
-            depends=[
-                "src/biotraj/geometry/src/kernels/anglekernels.h",
-                "src/biotraj/geometry/src/kernels/dihedralkernels.h",
-                "src/biotraj/geometry/src/kernels/distancekernels.h",
-            ],
-            define_macros=define_macros,
-            extra_compile_args=compiler_args,
-            libraries=compiler_libraries,
-            language="c++",
-        ),
-        Extension(
-            "biotraj.geometry.drid",
-            sources=[
-                "src/biotraj/geometry/drid.pyx",
-                "src/biotraj/geometry/src/dridkernels.cpp",
-                "src/biotraj/geometry/src/moments.cpp",
-            ],
-            include_dirs=["src/biotraj/geometry/include"],
-            define_macros=define_macros,
-            extra_compile_args=compiler_args,
-            libraries=compiler_libraries,
-            language="c++",
-        ),
-        Extension(
-            "biotraj.geometry.neighbors",
-            sources=[
-                "src/biotraj/geometry/neighbors.pyx",
-                "src/biotraj/geometry/src/neighbors.cpp",
-            ],
-            include_dirs=["src/biotraj/geometry/include"],
-            define_macros=define_macros,
-            extra_compile_args=compiler_args,
-            libraries=compiler_libraries,
-            language="c++",
-        ),
-        Extension(
-            "biotraj.geometry.neighborlist",
-            sources=[
-                "src/biotraj/geometry/neighborlist.pyx",
-                "src/biotraj/geometry/src/neighborlist.cpp",
-            ],
-            include_dirs=["src/biotraj/geometry/include"],
-            define_macros=define_macros,
-            extra_compile_args=compiler_args,
-            libraries=compiler_libraries,
-            language="c++",
-        ),
-    ]
 
 write_version_py(VERSION, ISRELEASED, "src/biotraj/version.py")
 
@@ -233,15 +143,15 @@ metadata = dict(
     long_description="\n".join(DOCLINES[2:]),
     version=__version__,
     license="LGPLv2.1+",
-#    url="http://biotraj.org",
-#    download_url="https://github.com/rmcgibbo/src/biotraj/releases/latest",
+    #    url="http://biotraj.org",
+    #    download_url="https://github.com/rmcgibbo/src/biotraj/releases/latest",
     platforms=["Linux", "Mac OS-X", "Unix", "Windows"],
-    python_requires='>=3.9',
+    python_requires=">=3.9",
     classifiers=CLASSIFIERS.splitlines(),
     cmdclass={"build_ext": build_ext},
     install_requires=[
         "numpy>=2.0",
-    #    "scipy",
+        "scipy>=1.14",
         "pyparsing",
         "packaging",
     ],
@@ -253,8 +163,8 @@ metadata = dict(
             "mdinspect = biotraj.scripts.mdinspect:entry_point",
         ],
     },
-    packages=find_packages(where='src'),
-    package_dir={'': 'src'},
+    packages=find_packages(where="src"),
+    package_dir={"": "src"},
 )
 
 
@@ -265,13 +175,12 @@ if __name__ == "__main__":
     run_build = parse_setuppy_commands()
     if run_build:
         extensions = format_extensions()
-        extensions.extend(geometry_extensions())
 
         # most extensions use numpy, add headers for it.
         try:
             import Cython as _c
             from Cython.Build import cythonize
-            #if _c.__version__ < "0.29":
+            # if _c.__version__ < "0.29":
             #    raise ImportError("Too old")
         except ImportError as e:
             print(

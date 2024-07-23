@@ -186,7 +186,9 @@ class Unit:
         Returns True if self < other, False otherwise.
         """
         if not self.is_compatible(other):
-            raise TypeError('Unit "%s" is not compatible with Unit "%s".', (self, other))
+            raise TypeError(
+                'Unit "%s" is not compatible with Unit "%s".', (self, other)
+            )
         return self.conversion_factor_to(other) < 1.0
 
     def __le__(self, other):
@@ -634,7 +636,9 @@ class UnitSystem:
                     base_units[d] = base_unit
         self.base_units = base_units
         if not len(self.base_units) == len(self.units):
-            raise ArithmeticError("UnitSystem must have same number of units as base dimensions")
+            raise ArithmeticError(
+                "UnitSystem must have same number of units as base dimensions"
+            )
         # self.dimensions is a dict of {BaseDimension: index}
         dimensions = sorted(base_units.keys())
         self.dimensions = {}

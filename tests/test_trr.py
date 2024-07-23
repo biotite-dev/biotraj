@@ -1,7 +1,6 @@
 import os
 from os import path
 from os.path import join
-import tempfile
 
 import numpy as np
 import pytest
@@ -10,12 +9,16 @@ from biotraj.formats import TRRTrajectoryFile
 
 from .util import data_dir
 
+
 @pytest.fixture(scope="module")
 def trr_path():
     return join(data_dir(), "frame0.trr")
+
+
 @pytest.fixture(scope="module")
 def transferred_test_trr():
     return join(data_dir(), "transferred_test_trr.trr")
+
 
 # Write data and read it
 def test_write_reread(tmpdir):
@@ -36,6 +39,7 @@ def test_write_reread(tmpdir):
     assert np.allclose(step, step2)
     assert np.allclose(lambd, lambd2)
 
+
 # TRR read stride when n_frames is supplied (different path)
 def test_read_stride_n_frames(trr_path):
     with TRRTrajectoryFile(trr_path) as f:
@@ -47,6 +51,7 @@ def test_read_stride_n_frames(trr_path):
     assert np.allclose(box[::3], box3)
     assert np.allclose(time[::3], time3)
 
+
 # Read xtc with stride and offsets
 def test_read_stride_offsets(trr_path):
     with TRRTrajectoryFile(trr_path) as f:
@@ -54,12 +59,13 @@ def test_read_stride_offsets(trr_path):
     for s in (1, 2, 3, 4, 5):
         with TRRTrajectoryFile(trr_path) as f:
             # pre-compute byte offsets between frames
-            f.offsets  
+            f.offsets
             xyz_s, time_s, step_s, box_s, lamb_s = f.read(stride=s)
         assert np.allclose(xyz_s, xyz[::s])
         assert np.allclose(step_s, step[::s])
         assert np.allclose(box_s, box[::s])
         assert np.allclose(time_s, time[::s])
+
 
 # Read trr with stride with n_frames and offsets
 def test_read_stride_n_frames_offsets(trr_path):
@@ -68,12 +74,13 @@ def test_read_stride_n_frames_offsets(trr_path):
     for s in (1, 2, 3, 4, 5):
         with TRRTrajectoryFile(trr_path) as f:
             # pre-compute byte offsets between frames
-            f.offsets  
+            f.offsets
             xyz_s, time_s, step_s, box_s, lamb_s = f.read(n_frames=1000, stride=s)
         assert np.allclose(xyz_s, xyz[::s])
         assert np.allclose(step_s, step[::s])
         assert np.allclose(box_s, box[::s])
         assert np.allclose(time_s, time[::s])
+
 
 # Read TRR with subsequently different strides
 def test_read_stride_switching(trr_path):
@@ -81,7 +88,7 @@ def test_read_stride_switching(trr_path):
         xyz, time, step, box, lambd = f.read()
     with TRRTrajectoryFile(trr_path) as f:
         # pre-compute byte offsets between frames
-        f.offsets  
+        f.offsets
         # read the first 10 frames with stride of 2
         s = 2
         n_frames = 10
@@ -101,6 +108,7 @@ def test_read_stride_switching(trr_path):
         assert np.allclose(box_s, box[offset::s])
         assert np.allclose(time_s, time[offset::s])
 
+
 # Write and read with custom file
 def test_write_read(transferred_test_trr):
     xyz = np.array(np.random.randn(500, 50, 3), dtype=np.float32)
@@ -116,6 +124,7 @@ def test_write_read(transferred_test_trr):
     assert np.allclose(time, time2)
     assert np.allclose(step, step2)
     assert np.allclose(lambd, lambd2)
+
 
 # Test a selection of/strided atomindices
 def test_read_atomindices_selection(transferred_test_trr):
@@ -136,6 +145,7 @@ def test_read_atomindices_selection(transferred_test_trr):
     assert np.allclose(lambd, lambd2)
     assert np.allclose(time, time2)
 
+
 def test_read_atomindices_strided(transferred_test_trr):
     # Create auxiliary file
     test_write_read(transferred_test_trr)
@@ -152,6 +162,7 @@ def test_read_atomindices_strided(transferred_test_trr):
     assert np.all([b is None for b in [box, box2]])
     assert np.allclose(lambd, lambd2)
     assert np.allclose(time, time2)
+
 
 # Write data one frame at a time. This checks how the shape is dealt with,
 # because each frame is deficient in shape.
@@ -174,6 +185,7 @@ def test_deficient_shape(tmpdir):
     assert np.allclose(step, step2)
     assert np.allclose(lambd, lambd2)
 
+
 # Test raised error upon addition of box vectors after first writeout
 def test_ragged_box_angles_added_second_write_err(tmpdir):
     xyz = np.random.randn(100, 5, 3)
@@ -181,11 +193,12 @@ def test_ragged_box_angles_added_second_write_err(tmpdir):
     box = np.random.randn(100, 3, 3)
 
     tmp_file_path = join(tmpdir, "tmpfile.trr")
-    
+
     with TRRTrajectoryFile(tmp_file_path, "w", force_overwrite=True) as f:
         f.write(xyz)
         with pytest.raises(ValueError):
             f.write(xyz, time, box)
+
 
 # Test raised error upon removal of box vectors after first writeout
 def test_ragged_box_angles_missing_second_write_err(tmpdir):
@@ -201,13 +214,14 @@ def test_ragged_box_angles_missing_second_write_err(tmpdir):
         with pytest.raises(ValueError):
             f.write(xyz)
 
+
 # Test, whether writeout of malformed TRRs is correctly aborted
 def test_malformed(tmpdir):
     tmp_file_path = join(tmpdir, "tmpfile.trr")
 
     with open(tmp_file_path, "w") as tmpf:
         # very badly malformed TRR
-        tmpf.write("foo")  
+        tmpf.write("foo")
 
     with pytest.raises(IOError):
         TRRTrajectoryFile(tmp_file_path)
@@ -216,6 +230,7 @@ def test_malformed(tmpdir):
     open_files = psutil.Process().open_files()
     paths = [path.realpath(f.path) for f in open_files]
     assert path.realpath(tmp_file_path) not in paths
+
 
 def test_tell(trr_path):
     with TRRTrajectoryFile(trr_path) as f:
@@ -256,6 +271,7 @@ def test_seek(trr_path):
         assert np.allclose(f.tell(), 1)
         assert np.allclose(f.read(1)[0][0], reference[1])
 
+
 ## NOTE: The following tests are for a hidden API
 def test_get_velocities(tmpdir):
     """Write data with velocities and read it back"""
@@ -284,6 +300,7 @@ def test_get_velocities(tmpdir):
     assert np.allclose(lambd, lambd2)
     assert np.allclose(vel, vel2)
     assert forces2 is None
+
 
 # Test: Write data with forces; reread that file
 def test_get_forces(tmpdir):
@@ -319,6 +336,7 @@ def test_get_forces(tmpdir):
     assert np.allclose(lambd, lambd2)
     assert vel2 is None
     assert np.allclose(forces, forces2)
+
 
 # Test: Write data with forces and velocities; reread that file
 def test_get_velocities_and_forces(tmpdir):
@@ -357,6 +375,7 @@ def test_get_velocities_and_forces(tmpdir):
     assert np.allclose(step, step2)
     assert np.allclose(lambd, lambd2)
 
+
 # Test atom indices subsets
 def test_get_velocities_forces_atom_indices(tmpdir):
     xyz = np.array(np.random.randn(500, 50, 3), dtype=np.float32)
@@ -393,6 +412,7 @@ def test_get_velocities_forces_atom_indices(tmpdir):
     assert np.allclose(time, time2)
     assert np.allclose(step, step2)
     assert np.allclose(lambd, lambd2)
+
 
 # Test atom indices with strides
 def test_get_velocities_forces_atom_indices_strided(tmpdir):
@@ -431,6 +451,7 @@ def test_get_velocities_forces_atom_indices_strided(tmpdir):
     assert np.allclose(step, step2)
     assert np.allclose(lambd, lambd2)
 
+
 # Test error upon requesting velocities from a file that lacks these
 def test_read_velocities_do_not_exist(tmpdir):
     xyz = np.array(np.random.randn(500, 50, 3), dtype=np.float32)
@@ -451,6 +472,7 @@ def test_read_velocities_do_not_exist(tmpdir):
                 get_velocities=True,
                 get_forces=False,
             )
+
 
 # Test error upon requesting forces from a file that lacks these
 def test_read_forces_do_not_exist(tmpdir):

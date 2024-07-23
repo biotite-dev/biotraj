@@ -359,21 +359,29 @@ class GroTrajectoryFile:
                     line[i * 5 : i * 5 + 5].strip() for i in range(4)
                 )
                 thisresnum, thisatomnum = map(int, (thisresnum, thisatomnum))
-                if residue is None or residue.resSeq != thisresnum or old_resname != thisresname:
+                if (
+                    residue is None
+                    or residue.resSeq != thisresnum
+                    or old_resname != thisresname
+                ):
                     if residue is not None and thisresnum == residue.resSeq:
                         warnings.warn(
                             f"WARNING: two consecutive residues with same number ({thisresname}, {old_resname})",
                         )
                     old_resname = thisresname
                     if thisresname in pdb.PDBTrajectoryFile._residueNameReplacements:
-                        thisresname = pdb.PDBTrajectoryFile._residueNameReplacements[thisresname]
+                        thisresname = pdb.PDBTrajectoryFile._residueNameReplacements[
+                            thisresname
+                        ]
                     residue = topology.add_residue(
                         thisresname,
                         chain,
                         resSeq=thisresnum,
                     )
                     if thisresname in pdb.PDBTrajectoryFile._atomNameReplacements:
-                        atomReplacements = pdb.PDBTrajectoryFile._atomNameReplacements[thisresname]
+                        atomReplacements = pdb.PDBTrajectoryFile._atomNameReplacements[
+                            thisresname
+                        ]
                     else:
                         atomReplacements = {}
 
@@ -579,7 +587,9 @@ def _parse_gro_coord(line, firstDecimal, secondDecimal):
         return None
     digits = secondDecimal - firstDecimal
     try:
-        return tuple(float(line[20 + i * digits : 20 + (i + 1) * digits]) for i in range(3))
+        return tuple(
+            float(line[20 + i * digits : 20 + (i + 1) * digits]) for i in range(3)
+        )
     except ValueError:
         return None
 

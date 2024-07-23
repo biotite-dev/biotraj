@@ -7,13 +7,16 @@ from biotraj.formats import DCDTrajectoryFile
 
 from .util import data_dir
 
+
 @pytest.fixture(scope="module")
 def dcd_path():
     return join(data_dir(), "frame0.dcd")
 
+
 @pytest.fixture(scope="module")
 def dcd_npz_reference_path():
     return join(data_dir(), "frame0.dcd.npz")
+
 
 ## Trajectory read-in
 # Compare DCD reader results with NPZ coordinate reference
@@ -23,14 +26,16 @@ def test_read(dcd_path, dcd_npz_reference_path):
 
     assert np.allclose(xyz, xyz2)
 
+
 # Compare alternative modes: Full compared to N frames
-def test_read_n_frames(dcd_path): 
+def test_read_n_frames(dcd_path):
     xyz1, box_lengths1, box_angles1 = DCDTrajectoryFile(dcd_path).read()
     xyz2, box_lengths2, box_angles2 = DCDTrajectoryFile(dcd_path).read(10000)
 
     assert np.allclose(xyz1, xyz2)
     assert np.allclose(box_lengths1, box_lengths2)
     assert np.allclose(box_angles1, box_angles2)
+
 
 # Read DCD file with strides
 def test_read_stride(dcd_path):
@@ -43,6 +48,7 @@ def test_read_stride(dcd_path):
     assert np.allclose(box_lengths1[::2], box_lengths2)
     assert np.allclose(box_angles1[::2], box_angles2)
 
+
 # Read DCD file strided, for a subset of frames
 def test_read_stride_n_frame_subset(dcd_path):
     with DCDTrajectoryFile(dcd_path) as f:
@@ -54,6 +60,7 @@ def test_read_stride_n_frame_subset(dcd_path):
     assert np.allclose(box_lengths1[::2], box_lengths2)
     assert np.allclose(box_angles1[::2], box_angles2)
 
+
 # Test iterative read-in with one frame at a time/streaming read
 def test_iterative_read(dcd_path):
     xyz_ref, box_lengths_ref, box_angles_ref = DCDTrajectoryFile(dcd_path).read()
@@ -64,6 +71,7 @@ def test_iterative_read(dcd_path):
         assert np.allclose(xyz_ref[np.newaxis, i], xyz)
         assert np.allclose(box_lengths_ref[np.newaxis, i], box_lenths)
         assert np.allclose(box_angles_ref[np.newaxis, i], box_angles)
+
 
 # Test partial streaming read: Streaming followed by remainder of trajectory
 def test_partial_streaming(dcd_path):
@@ -84,6 +92,7 @@ def test_partial_streaming(dcd_path):
 
     assert len(xyz_ref) == i + len(xyz_rest)
 
+
 # Test loading subset of atoms
 def test_subset_atom_read_in(dcd_path):
     with DCDTrajectoryFile(dcd_path) as f:
@@ -93,6 +102,7 @@ def test_subset_atom_read_in(dcd_path):
 
     assert np.allclose(xyz_ref[:, [1, 2, 5], :], xyz)
 
+
 # Sliced atom indices
 def test_sliced_atom_read_in(dcd_path):
     with DCDTrajectoryFile(dcd_path) as f:
@@ -101,6 +111,7 @@ def test_sliced_atom_read_in(dcd_path):
         xyz, box_lengths, box_angles = f.read(atom_indices=slice(None, None, 2))
 
     assert np.allclose(xyz_ref[:, ::2, :], xyz)
+
 
 ## Write
 # Test basic writeout, single line
@@ -114,6 +125,7 @@ def test_write_single_line(tmpdir, dcd_path):
         xyz2 = f.read()[0]
 
     assert np.allclose(xyz, xyz2)
+
 
 # Box length and angles
 def test_write_with_box(tmpdir):
@@ -135,6 +147,7 @@ def test_write_with_box(tmpdir):
     assert np.allclose(box_lengths, box_lengths2)
     assert np.allclose(box_angles, box_angles2)
 
+
 # Test, whether ValueError is correctly raised for mismatching input
 def test_coordinates_boxlength_mismatch(tmpdir):
     fn = join(tmpdir, "x.dcd")
@@ -144,6 +157,7 @@ def test_coordinates_boxlength_mismatch(tmpdir):
     with DCDTrajectoryFile(fn, "w") as f:
         with pytest.raises(ValueError):
             f.write(xyz, box_lengths)
+
 
 # Test iterative trajectory writing
 def test_write_iteratively(tmpdir):
@@ -166,8 +180,9 @@ def test_write_iteratively(tmpdir):
     assert np.allclose(box_lengths, box_lengths2)
     assert np.allclose(box_angles, box_angles2)
 
+
 # Test overwriting behaviour and raised Errors
-# TODO: TypeCastPerformanceWarning: Casting xyz dtype=float64 to <class 'numpy.float32'> 
+# TODO: TypeCastPerformanceWarning: Casting xyz dtype=float64 to <class 'numpy.float32'>
 def test_do_overwrite(tmpdir):
     fn = join(tmpdir, "x.dcd")
     with open(fn, "w") as f:
@@ -186,6 +201,7 @@ def test_dont_overwrite(tmpdir):
         with DCDTrajectoryFile(fn, "w", force_overwrite=False) as f:
             f.write(np.random.randn(10, 5, 3))
 
+
 # Test reading/writing closed trajs -> IOError
 def test_read_closed(dcd_path):
     fn_dcd = dcd_path
@@ -194,12 +210,14 @@ def test_read_closed(dcd_path):
         f.close()
         f.read()
 
+
 def test_write_closed(dcd_path):
     fn_dcd = dcd_path
     with pytest.raises(IOError):
         f = DCDTrajectoryFile(fn_dcd, "w")
         f.close()
         f.write(np.random.randn(10, 3, 3))
+
 
 #  Test tell function -> Returns the current file position
 def test_tell(dcd_path):
@@ -211,6 +229,7 @@ def test_tell(dcd_path):
 
         f.read(3)
         assert np.allclose(f.tell(), 104)
+
 
 # Test seek function -> changes the current trajectory file position
 def test_seek(dcd_path):
@@ -237,6 +256,7 @@ def test_seek(dcd_path):
         f.seek(-5, 1)
         assert np.allclose(f.tell(), 1)
         assert np.allclose(f.read(1)[0][0], reference[1])
+
 
 # Test reaised error for delayed addition of cell angles/length
 def test_delayed_cell_length_angles(tmpdir):

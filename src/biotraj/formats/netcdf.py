@@ -36,7 +36,7 @@ import numpy as np
 
 from biotraj import version
 from biotraj.formats.registry import FormatRegistry
-from biotraj.utils import cast_indices, ensure_type, import_, in_units_of
+from biotraj.utils import cast_indices, ensure_type, in_units_of
 
 __all__ = ["NetCDFTrajectoryFile", "load_netcdf"]
 
@@ -133,6 +133,7 @@ class NetCDFTrajectoryFile:
         try:
             # import netcdf4 if it's available
             import netCDF4
+
             netcdf = netCDF4.Dataset
 
             # set input args for netCDF4
@@ -333,7 +334,8 @@ class NetCDFTrajectoryFile:
                 )
             if not np.all(atom_slice >= 0):
                 raise ValueError(
-                    "The entries in atom_indices must be greater " "than or equal to zero",
+                    "The entries in atom_indices must be greater "
+                    "than or equal to zero",
                 )
 
         if "coordinates" in self._handle.variables:
@@ -469,7 +471,9 @@ class NetCDFTrajectoryFile:
         )
 
         # are we dealing with a periodic system?
-        if (cell_lengths is None and cell_angles is not None) or (cell_lengths is not None and cell_angles is None):
+        if (cell_lengths is None and cell_angles is not None) or (
+            cell_lengths is not None and cell_angles is None
+        ):
             provided, neglected = "cell_lengths", "cell_angles"
             if cell_lengths is None:
                 provided, neglected = neglected, provided
@@ -503,7 +507,8 @@ class NetCDFTrajectoryFile:
                 self._handle.variables["cell_angles"][frame_slice, :] = cell_angles
         except KeyError as e:
             raise ValueError(
-                "The file that you're trying to save to doesn't " "contain the field %s." % str(e),
+                "The file that you're trying to save to doesn't "
+                "contain the field %s." % str(e),
             )
 
         # check for missing attributes

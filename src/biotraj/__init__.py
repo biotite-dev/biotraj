@@ -52,8 +52,6 @@ from .formats.trr import load_trr
 from .formats.xtc import load_xtc
 from .formats.xyzfile import load_xyz
 
-from .core import element
-from .core.topology import Topology, Single, Double, Triple, Amide, Aromatic
 from .core.trajectory import *
 
 __name__ = "biotraj"
@@ -83,6 +81,7 @@ __all__ = (
     "join",
     "Trajectory",
 )
+
 
 def capi():
     import os
