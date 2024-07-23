@@ -50,26 +50,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install cibuildwheel
-        # MAKE SURE THIS STAYS IN SYNC WITH THE LOWER GHA cibuildwheel
         run: pipx install cibuildwheel==2.19.1
       - id: set-matrix
         run: |
-        MATRIX=$(
-          {
-            cibuildwheel --print-build-identifiers --platform linux \
-            | jq -nRc '{"dist": inputs, "os": "ubuntu-latest"}' \
-            && cibuildwheel --print-build-identifiers --platform macos \
-            | jq -nRc '
-              if (inputs | contains("x86_64")) then
-                {"dist": inputs, "os": "macos-13"}
-              else
-                {"dist": inputs, "os": "macos-latest"}
-              end
-            ' \
-            && cibuildwheel --print-build-identifiers --platform windows \
-            | jq -nRc '{"dist": inputs, "os": "windows-latest"}'
-          } | jq -sc
-        )
+          MATRIX=$(
+            {
+              cibuildwheel --print-build-identifiers --platform linux \
+              | jq -nRc '{"dist": inputs, "os": "ubuntu-latest"}' \
+              && cibuildwheel --print-build-identifiers --platform macos \
+              | jq -nRc '
+                if (inputs | contains("x86_64")) then
+                  {"dist": inputs, "os": "macos-11"}
+                else
+                  {"dist": inputs, "os": "macos-latest"}
+                end
+              ' \
+              && cibuildwheel --print-build-identifiers --platform windows \
+              | jq -nRc '{"dist": inputs, "os": "windows-latest"}'
+            } | jq -sc
+          )
           echo "include=$MATRIX" | tee -a $GITHUB_OUTPUT
         env:
           CIBW_ARCHS_LINUX: "x86_64"
