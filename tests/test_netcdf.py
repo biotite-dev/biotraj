@@ -24,13 +24,16 @@ def nc_path():
 def pdb_path():
     return join(data_dir(), "native.pdb")
 
+
 @pytest.fixture(scope="module")
 def dcd_frame0_reference_path():
     return join(data_dir(), "frame0.dcd")
 
+
 @pytest.fixture(scope="module")
 def pdb_frame0_reference_path():
     return join(data_dir(), "frame0.pdb")
+
 
 needs_cpptraj = pytest.mark.skipif(
     which("cpptraj") is None,
@@ -268,7 +271,7 @@ def test_cpptraj(dcd_frame0_reference_path, pdb_frame0_reference_path):
     top = pdb_frame0_reference_path
     trj0 = md.load(dcd_path, top=top)
     trj0.save(temp)
-    
+
     # Read trj0 from temp; save trajectory as temp2 with CPPTRAJ
     subprocess.check_call(
         [
