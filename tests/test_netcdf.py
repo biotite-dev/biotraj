@@ -24,13 +24,6 @@ def nc_path():
 def pdb_path():
     return join(data_dir(), "native.pdb")
 
-@pytest.fixture(scope="module")
-def dcd_frame0_reference_path():
-    return join(data_dir(), "frame0.dcd")
-
-@pytest.fixture(scope="module")
-def pdb_frame0_reference_path():
-    return join(data_dir(), "frame0.pdb")
 
 needs_cpptraj = pytest.mark.skipif(
     which("cpptraj") is None,
@@ -261,15 +254,12 @@ class TestNetCDFScipy(TestNetCDFNetCDF4):
 
 # TODO: Alternative needed here
 # -> ambertool is not compatible with Numpy >=2.0
-# Separately compiled AmberTools required for now
 @needs_cpptraj
-def test_cpptraj(dcd_frame0_reference_path, pdb_frame0_reference_path):
-    dcd_path = dcd_frame0_reference_path
-    top = pdb_frame0_reference_path
-    trj0 = md.load(dcd_path, top=top)
+def test_cpptraj(get_fn):
+    trj0 = md.load(get_fn("frame0.dcd"), top=get_fn("frame0.pdb"))
     trj0.save(temp)
-    
-    # Read trj0 from temp; save trajectory as temp2 with CPPTRAJ
+
+    top = get_fn("frame0.pdb")
     subprocess.check_call(
         [
             "cpptraj",
