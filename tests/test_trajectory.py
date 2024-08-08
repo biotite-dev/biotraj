@@ -822,6 +822,7 @@ def test_smooth():
     assert np.allclose(output, test)
 
 
+# TODO: Remove test -> image_molecules depends on removed geometry.py
 @pytest.mark.skip(reason="Broken, maybe only on Python 3.11")
 def test_image_molecules():
     # Load trajectory with periodic box
