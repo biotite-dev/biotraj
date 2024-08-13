@@ -34,6 +34,8 @@ dynamic = ["version"]
 [project.optional-dependencies]
 test = [
   "pytest",
+  "psutil",
+  "netcdf4 >= 1.7.1",
 ]
 
 [project.urls]
@@ -95,3 +97,4 @@ requires = [
     "numpy >= 2.0",
     "Cython >= 3.0"
 ]
+build-backend = "setuptools.build_meta"
