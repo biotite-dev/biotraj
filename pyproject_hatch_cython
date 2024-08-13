@@ -103,20 +103,20 @@ define_macros = [
 ]
 # include .h or .cpp directories
 includes = [
-    "src/biotraj/formats/src",
-    "src/biotraj/formats/include"
+    "src/biotraj/src",
+    "src/biotraj/include"
 ]
 
 [build.hooks.cython.options]
 targets = [
-  "src/biotraj/formats/dcd.pyx",
-  "src/biotraj/formats/trr.pyx",
-  "src/biotraj/formats/xtc.pyx"
+  "src/biotraj/dcd.pyx",
+  "src/biotraj/trr.pyx",
+  "src/biotraj/xtc.pyx"
 ]
 
 includes = [
-    "src/biotraj/formats/include",
-    "src/biotraj/formats/src"
+    "src/biotraj/include",
+    "src/biotraj/src"
 ]
 
 compile_args = [

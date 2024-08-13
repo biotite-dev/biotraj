@@ -21,34 +21,21 @@
 # License along with MDTraj. If not, see <http://www.gnu.org/licenses/>.
 ##############################################################################
 
+__all__ = ['TRRTrajectoryFile']
 
-###############################################################################
-# Imports
-###############################################################################
+cimport numpy as np
+np.import_array()
+from biotraj cimport xdrlib
+from biotraj cimport trrlib
+from libc.stdio cimport SEEK_CUR, SEEK_SET
 
 import os
 import warnings
 import numpy as np
+from biotraj.utils import ensure_type
 
-cimport numpy as np
 
-np.import_array()
-
-from .registry import FormatRegistry
-from ..utils import cast_indices, ensure_type, in_units_of
-
-from . cimport xdrlib
-
-from . cimport trrlib
-from libc.stdio cimport SEEK_CUR, SEEK_SET
-
-ctypedef np.npy_int64   int64_t
-
-__all__ = ['load_trr', 'TRRTrajectoryFile']
-
-###############################################################################
-# globals
-###############################################################################
+ctypedef np.npy_int64 int64_t
 
 cdef int _EXDROK = 0             # OK
 cdef int _EXDRENDOFFILE = 11     # End of file
@@ -73,78 +60,6 @@ if sizeof(int) != sizeof(np.int32_t):
     raise RuntimeError('Integers on your compiler are not 32 bits. This is not good.')
 if sizeof(float) != sizeof(np.float32_t):
     raise RuntimeError('Floats on your compiler are not 32 bits. This is not good')
-
-###############################################################################
-# Code
-###############################################################################
-
-@FormatRegistry.register_loader('.trr')
-def load_trr(filename, top=None, stride=None, atom_indices=None, frame=None):
-    """load_trr(filename, top=None, stride=None, atom_indices=None, frame=None)
-
-    Load a Gromacs TRR file from disk.
-
-    The .trr format is a cross-platform compressed binary trajectory format
-    produced by the gromacs software that stores atomic coordinates, box
-    vectors, and time information.
-
-    Parameters
-    ----------
-    filename : str
-        Filename of TRR trajectory file.
-    top : {str, Trajectory, Topology}
-        The TRR format does not contain topology information. Pass in either the
-        path to a pdb file, a trajectory, or a topology to supply this information.
-    stride : int, default=None
-        Only read every stride-th frame
-    atom_indices : array_like, optional
-        If not none, then read only a subset of the atoms coordinates from the
-        file. This may be slightly slower than the standard read because it
-        requires an extra copy, but will save memory.
-    frame : int, optional
-        Use this option to load only a single frame from a trajectory on disk.
-        If frame is None, the default, the entire trajectory will be loaded.
-        If supplied, ``stride`` will be ignored.
-
-    Examples
-    --------
-    >>> import mdtraj as md                                        # doctest: +SKIP
-    >>> traj = md.load_trr('output.trr', top='topology.pdb')       # doctest: +SKIP
-    >>> print traj                                                 # doctest: +SKIP
-    <biotraj.Trajectory with 500 frames, 423 atoms at 0x110740a90>  # doctest: +SKIP
-
-    Returns
-    -------
-    trajectory : md.Trajectory
-        The resulting trajectory, as an md.Trajectory object.
-
-    See Also
-    --------
-    biotraj.TRRTrajectoryFile :  Low level interface to TRR files
-    """
-    # we make it not required in the signature, but required here. although this
-    # is a little wierd, its good because this function is usually called by a
-    # dispatch from load(), where top comes from **kwargs. So if its not supplied
-    # we want to give the user an informative error message
-    from biotraj.core.trajectory import Trajectory, _parse_topology
-    if top is None:
-        raise ValueError('"top" argument is required for load_trr')
-
-    if not isinstance(filename, (str, os.PathLike)):
-        raise TypeError('filename must be of type string for load_trr. '
-                        'you supplied %s' % type(filename))
-
-    topology = _parse_topology(top)
-    atom_indices = cast_indices(atom_indices)
-    with TRRTrajectoryFile(str(filename), 'r') as f:
-        if frame is not None:
-            f.seek(frame)
-            n_frames = 1
-        else:
-            n_frames = None
-
-        return f.read_as_traj(topology, n_frames=n_frames, stride=stride,
-                              atom_indices=atom_indices)
 
 
 cdef class TRRTrajectoryFile(object):
@@ -308,50 +223,6 @@ cdef class TRRTrajectoryFile(object):
         if self.is_open:
             trrlib.xdrfile_close(self.fh)
             self.is_open = False
-
-    def read_as_traj(self, topology, n_frames=None, stride=None, atom_indices=None):
-        """read_as_traj(topology, n_frames=None, stride=None, atom_indices=None)
-
-        Read a trajectory from an XTC file
-
-        Parameters
-        ----------
-        topology : Topology
-            The system topology
-        n_frames : int, None
-            The number of frames you would like to read from the file.
-            If None, all of the remaining frames will be loaded.
-        stride : int, optional
-            Read only every stride-th frame.
-        atom_indices : array_like, optional
-            If not none, then read only a subset of the atoms coordinates from the
-            file. This may be slightly slower than the standard read because it required
-            an extra copy, but will save memory.
-
-        Returns
-        -------
-        trajectory : Trajectory
-            A trajectory object containing the loaded portion of the file.
-
-        See Also
-        --------
-        read : Returns the raw data from the file
-        """
-
-        from biotraj.core.trajectory import Trajectory
-        if atom_indices is not None:
-            topology = topology.subset(atom_indices)
-
-        xyz, time, step, box, _ = self.read(n_frames=n_frames, stride=stride, atom_indices=atom_indices)
-        if len(xyz) == 0:
-            return Trajectory(xyz=np.zeros((0, topology.n_atoms, 3)), topology=topology)
-
-        in_units_of(xyz, self.distance_unit, Trajectory._distance_unit, inplace=True)
-        in_units_of(box, self.distance_unit, Trajectory._distance_unit, inplace=True)
-
-        trajectory = Trajectory(xyz=xyz, topology=topology, time=time)
-        trajectory.unitcell_vectors = box
-        return trajectory
 
     def read(self, n_frames=None, stride=None, atom_indices=None):
         """read(n_frames=None, stride=None, atom_indices=None)
@@ -817,5 +688,3 @@ cdef class TRRTrajectoryFile(object):
         if self.n_frames == -1:
             self.offsets
         return int(self.n_frames)
-
-FormatRegistry.register_fileobject('.trr')(TRRTrajectoryFile)

@@ -1,13 +1,3 @@
-"""MDTraj: A modern, open library for the analysis of molecular dynamics trajectories
-
-MDTraj is a python library that allows users to manipulate molecular dynamics
-(MD) trajectories and perform a variety of analyses, including fast RMSD,
-solvent accessible surface area, hydrogen bonding, etc. A highlight of MDTraj
-is the wide variety of molecular dynamics trajectory file formats which are
-supported, including RCSB pdb, GROMACS xtc, and trr, CHARMM / NAMD dcd, AMBER
-AMBER NetCDF, AMBER mdcrd, TINKER arc and MDTraj HDF5.
-"""
-
 import sys
 
 from setuptools import Extension, find_packages, setup
@@ -75,31 +65,31 @@ def format_extensions():
     compiler_args = compiler.compiler_args_warn
 
     xtc = Extension(
-        "biotraj.formats.xtc",
+        "biotraj.xtc",
         sources=[
-            "src/biotraj/formats/src/xdrfile.c",
-            "src/biotraj/formats/src/xdr_seek.c",
-            "src/biotraj/formats/src/xdrfile_xtc.c",
-            "src/biotraj/formats/xtc.pyx",
+            "src/biotraj/src/xdrfile.c",
+            "src/biotraj/src/xdr_seek.c",
+            "src/biotraj/src/xdrfile_xtc.c",
+            "src/biotraj/xtc.pyx",
         ],
         include_dirs=[
-            "src/biotraj/formats/include/",
-            "src/biotraj/formats/",
+            "src/biotraj/include/",
+            "src/biotraj/",
         ],
         extra_compile_args=compiler_args,
     )
 
     trr = Extension(
-        "biotraj.formats.trr",
+        "biotraj.trr",
         sources=[
-            "src/biotraj/formats/src/xdrfile.c",
-            "src/biotraj/formats/src/xdr_seek.c",
-            "src/biotraj/formats/src/xdrfile_trr.c",
-            "src/biotraj/formats/trr.pyx",
+            "src/biotraj/src/xdrfile.c",
+            "src/biotraj/src/xdr_seek.c",
+            "src/biotraj/src/xdrfile_trr.c",
+            "src/biotraj/trr.pyx",
         ],
         include_dirs=[
-            "src/biotraj/formats/include/",
-            "src/biotraj/formats/",
+            "src/biotraj/include/",
+            "src/biotraj/",
         ],
         extra_compile_args=compiler_args,
     )
@@ -118,14 +108,14 @@ def format_extensions():
         zlib_library_dirs += [f"{sys.prefix}/lib"]
 
     dcd = Extension(
-        "biotraj.formats.dcd",
+        "biotraj.dcd",
         sources=[
-            "src/biotraj/formats/src/dcdplugin.c",
-            "src/biotraj/formats/dcd.pyx",
+            "src/biotraj/src/dcdplugin.c",
+            "src/biotraj/dcd.pyx",
         ],
         include_dirs=[
-            "src/biotraj/formats/include/",
-            "src/biotraj/formats/",
+            "src/biotraj/include/",
+            "src/biotraj/",
         ],
         extra_compile_args=compiler_args,
     )
@@ -137,8 +127,8 @@ write_version_py(VERSION, ISRELEASED, "src/biotraj/version.py")
 
 metadata = dict(
     name="biotraj",
-    author="Robert McGibbon",
-    author_email="rmcgibbo@gmail.com",
+    author="Robert McGibbon, Patrick Kunzmann, Jan Krumbach",
+    author_email="padix.key@gmail.com",
     description=DOCLINES[0],
     long_description="\n".join(DOCLINES[2:]),
     version=__version__,
@@ -146,23 +136,14 @@ metadata = dict(
     #    url="http://biotraj.org",
     #    download_url="https://github.com/rmcgibbo/src/biotraj/releases/latest",
     platforms=["Linux", "Mac OS-X", "Unix", "Windows"],
-    python_requires=">=3.9",
+    python_requires=">=3.10",
     classifiers=CLASSIFIERS.splitlines(),
     cmdclass={"build_ext": build_ext},
     install_requires=[
         "numpy>=2.0",
         "scipy>=1.14",
-        "pyparsing",
-        "packaging",
     ],
-    package_data={"biotraj.formats.pdb": ["data/*"]},
     zip_safe=False,
-    entry_points={
-        "console_scripts": [
-            "mdconvert = biotraj.scripts.mdconvert:entry_point",
-            "mdinspect = biotraj.scripts.mdinspect:entry_point",
-        ],
-    },
     packages=find_packages(where="src"),
     package_dir={"": "src"},
 )

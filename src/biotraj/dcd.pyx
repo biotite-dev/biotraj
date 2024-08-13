@@ -21,62 +21,29 @@
 # License along with MDTraj. If not, see <http://www.gnu.org/licenses/>.
 ##############################################################################
 
+__all__ = ['DCDTrajectoryFile']
 
-##############################################################################
-# Imports
-##############################################################################
+cimport numpy as np
+np.import_array()
+from biotraj.dcdlib cimport (
+    close_file_read,
+    close_file_write,
+    dcd_rewind,
+    dcdhandle,
+    molfile_timestep_t,
+    open_dcd_read,
+    open_dcd_write,
+    read_next_timestep,
+    write_timestep,
+)
+from libc.stdlib cimport free, malloc
+from libc.string cimport strcpy, strlen
 
 import os
-
 import numpy as np
+from biotraj.utils import ensure_type
 
-cimport numpy as np
 
-np.import_array()
-from .registry import FormatRegistry
-from ..utils import cast_indices, ensure_type, in_units_of
-
-from .dcdlib cimport (
-    close_file_read,
-    close_file_write,
-    dcd_rewind,
-    dcdhandle,
-    molfile_timestep_t,
-    open_dcd_read,
-    open_dcd_write,
-    read_next_timestep,
-    write_timestep,
-)
-from libc.stdlib cimport free, malloc
-from libc.string cimport strcpy, strlen
-
-import numpy as np
-
-cimport numpy as np
-
-np.import_array()
-from .registry import FormatRegistry
-from ..utils import cast_indices, ensure_type, in_units_of
-
-from .dcdlib cimport (
-    close_file_read,
-    close_file_write,
-    dcd_rewind,
-    dcdhandle,
-    molfile_timestep_t,
-    open_dcd_read,
-    open_dcd_write,
-    read_next_timestep,
-    write_timestep,
-)
-from libc.stdlib cimport free, malloc
-from libc.string cimport strcpy, strlen
-
-##############################################################################
-# Globals
-##############################################################################
-
-__all__ = ['DCDTrajectoryFile', 'load_dcd']
 # codes that indicate status on return from library
 cdef int _DCD_SUCCESS    = 0   # No problems
 cdef int _DCD_EOF    = -1   # No problems
@@ -93,82 +60,6 @@ cdef ERROR_MESSAGES = {
     -8: 'Malloc failed',
     -9: 'Write call on DCD file failed',
 }
-
-##############################################################################
-# Code
-##############################################################################
-
-@FormatRegistry.register_loader('.dcd')
-def load_dcd(filename, top=None, stride=None, atom_indices=None, frame=None):
-    """load_dcd(filename, top=None, stride=None, atom_indices=None, frame=None)
-
-    Load an DCD file from disk.
-
-    The .dcd format is a cross-platform compressed binary trajectory format
-    produced by many software packages, including CHARMM, NAMD, and OpenMM. It
-    stores atomic coordinates, box vectors, and time information.
-
-    Parameters
-    ----------
-    filename : path-like
-        Path of DCD file.
-    top : {path-like, Trajectory, Topology}
-        DCD XTC format does not contain topology information. Pass in either
-        the path to a pdb file, a trajectory, or a topology to supply this
-        information.
-    stride : int, default=None
-        Only read every stride-th frame
-    atom_indices : array_like, optional
-        If not none, then read only a subset of the atoms coordinates from the
-        file. This may be slightly slower than the standard read because it
-        requires an extra copy, but will save memory.
-    frame : int, optional
-        Use this option to load only a single frame from a trajectory on disk.
-        If frame is None, the default, the entire trajectory will be loaded.
-        If supplied, ``stride`` will be ignored.
-
-    Examples
-    --------
-    >>> import mdtraj as md
-    >>> traj = md.load_dcd('output.dcd', top='topology.pdb')
-    >>> print traj
-    <biotraj.Trajectory with 500 frames, 423 atoms at 0x110740a90>
-
-    >>> traj2 = md.load_dcd('output.dcd', stride=2, top='topology.pdb')
-    >>> print traj2
-    <biotraj.Trajectory with 250 frames, 423 atoms at 0x11136e410>
-
-    Returns
-    -------
-    trajectory : md.Trajectory
-        The resulting trajectory, as an md.Trajectory object.
-
-    See Also
-    --------
-    biotraj.DCDTrajectoryFile :  Low level interface to DCD files
-    """
-    from biotraj.core.trajectory import _parse_topology
-
-    # we make it not required in the signature, but required here. although this
-    # is a little wierd, its good because this function is usually called by a
-    # dispatch from load(), where top comes from **kwargs. So if its not supplied
-    # we want to give the user an informative error message
-    if top is None:
-        raise ValueError('"top" argument is required for load_dcd')
-    if not isinstance(filename, (str, os.PathLike)):
-        raise TypeError('filename must be of type path-like for load_dcd. '
-            'you supplied %s' % type(filename))
-
-    topology = _parse_topology(top)
-    atom_indices = cast_indices(atom_indices)
-
-    with DCDTrajectoryFile(str(filename)) as f:
-        if frame is not None:
-            f.seek(frame)
-            n_frames = 1
-        else:
-            n_frames = None
-        return f.read_as_traj(topology, n_frames=n_frames, stride=stride, atom_indices=atom_indices)
 
 
 cdef class DCDTrajectoryFile:
@@ -377,50 +268,6 @@ cdef class DCDTrajectoryFile:
         if not self.is_open:
             raise RuntimeError('I/O operation on closed file')
         return self.fh.nsets
-
-    def read_as_traj(self, topology, n_frames=None, stride=None, atom_indices=None):
-        """read_as_traj(topology, n_frames=None, stride=None, atom_indices=None)
-
-        Read a trajectory from an XTC file
-
-        Parameters
-        ----------
-        topology : Topology
-            The system topology
-        n_frames : int, optional
-            If positive, then read only the next `n_frames` frames. Otherwise read all
-            of the frames in the file.
-        stride : np.ndarray, optional
-            Read only every stride-th frame.
-        atom_indices : array_like, optional
-            If not none, then read only a subset of the atoms coordinates from the
-            file. This may be slightly slower than the standard read because it required
-            an extra copy, but will save memory.
-
-        Returns
-        -------
-        trajectory : Trajectory
-            A trajectory object containing the loaded portion of the file.
-        """
-        from biotraj.core.trajectory import Trajectory
-        if atom_indices is not None:
-            topology = topology.subset(atom_indices)
-
-        initial = self.tell()
-        xyz, box_length, box_angle = self.read(n_frames=n_frames, stride=stride, atom_indices=atom_indices)
-        if len(xyz) == 0:
-            return Trajectory(xyz=np.zeros((0, topology.n_atoms, 3)), topology=topology)
-
-        in_units_of(xyz, self.distance_unit, Trajectory._distance_unit, inplace=True)
-        in_units_of(box_length, self.distance_unit, Trajectory._distance_unit, inplace=True)
-
-        if stride is None:
-            stride = 1
-        time = (stride*np.arange(len(xyz))) + initial
-
-        return Trajectory(xyz=xyz, topology=topology, time=time,
-                          unitcell_lengths=box_length,
-                          unitcell_angles=box_angle)
 
     def read(self, n_frames=None, stride=None, atom_indices=None):
         """read(n_frames=None, stride=None, atom_indices=None)
@@ -635,4 +482,3 @@ cdef class DCDTrajectoryFile:
 
             if status != _DCD_SUCCESS:
                 raise IOError("DCD Error: %s" % ERROR_MESSAGES(status))
-FormatRegistry.register_fileobject('.dcd')(DCDTrajectoryFile)

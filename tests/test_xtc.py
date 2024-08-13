@@ -4,7 +4,7 @@ from os.path import join
 import numpy as np
 import pytest
 
-from biotraj.formats import XTCTrajectoryFile
+from biotraj import XTCTrajectoryFile
 
 from .util import data_dir
 
