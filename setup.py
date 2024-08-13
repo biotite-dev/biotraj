@@ -9,8 +9,6 @@ from basesetup import (
     write_version_py,
 )
 
-DOCLINES = __doc__.split("\n")
-
 sys.path.insert(0, ".")
 
 try:
@@ -26,23 +24,6 @@ VERSION = "0.1"
 ISRELEASED = False
 __version__ = VERSION
 ##########################
-
-
-CLASSIFIERS = """\
-Development Status :: 5 - Production/Stable
-Intended Audience :: Science/Research
-Intended Audience :: Developers
-License :: OSI Approved :: GNU Lesser General Public License v2 or later (LGPLv2+)
-Programming Language :: C
-Programming Language :: Python
-Programming Language :: Python :: 3
-Topic :: Scientific/Engineering :: Bio-Informatics
-Topic :: Scientific/Engineering :: Chemistry
-Operating System :: Microsoft :: Windows
-Operating System :: POSIX
-Operating System :: Unix
-Operating System :: MacOS
-"""
 
 # Global info about compiler
 compiler = CompilerDetection(disable_openmp)
@@ -126,23 +107,8 @@ def format_extensions():
 write_version_py(VERSION, ISRELEASED, "src/biotraj/version.py")
 
 metadata = dict(
-    name="biotraj",
-    author="Robert McGibbon, Patrick Kunzmann, Jan Krumbach",
-    author_email="padix.key@gmail.com",
-    description=DOCLINES[0],
-    long_description="\n".join(DOCLINES[2:]),
     version=__version__,
-    license="LGPLv2.1+",
-    #    url="http://biotraj.org",
-    #    download_url="https://github.com/rmcgibbo/src/biotraj/releases/latest",
-    platforms=["Linux", "Mac OS-X", "Unix", "Windows"],
-    python_requires=">=3.10",
-    classifiers=CLASSIFIERS.splitlines(),
     cmdclass={"build_ext": build_ext},
-    install_requires=[
-        "numpy>=2.0",
-        "scipy>=1.14",
-    ],
     zip_safe=False,
     packages=find_packages(where="src"),
     package_dir={"": "src"},
