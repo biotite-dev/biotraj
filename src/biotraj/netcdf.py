@@ -27,6 +27,8 @@ This module provides the ability to read and write AMBER NetCDF trajectories.
 The code is heavily based on amber_netcdf_trajectory_tools.py by John Chodera.
 """
 
+__all__ = ["NetCDFTrajectoryFile"]
+
 import os
 import socket
 import warnings
@@ -35,77 +37,9 @@ from datetime import datetime
 import numpy as np
 
 from biotraj import version
-from biotraj.formats.registry import FormatRegistry
-from biotraj.utils import cast_indices, ensure_type, in_units_of
-
-__all__ = ["NetCDFTrajectoryFile", "load_netcdf"]
-
-##############################################################################
-# classes
-##############################################################################
+from biotraj.utils import ensure_type
 
 
-@FormatRegistry.register_loader(".nc")
-@FormatRegistry.register_loader(".netcdf")
-@FormatRegistry.register_loader(".ncdf")
-def load_netcdf(filename, top=None, stride=None, atom_indices=None, frame=None):
-    """Load an AMBER NetCDF file. Since the NetCDF format doesn't contain
-    information to specify the topology, you need to supply a topology
-
-    Parameters
-    ----------
-    filename : path-like
-        filename of AMBER NetCDF file.
-    top : {str, Trajectory, Topology}
-        The NetCDF format does not contain topology information. Pass in either
-        the path to a pdb file, a trajectory, or a topology to supply this
-        information.
-    stride : int, default=None
-        Only read every stride-th frame
-    atom_indices : array_like, optional
-        If not None, then read only a subset of the atoms coordinates from the
-        file. This may be slightly slower than the standard read because it
-        requires an extra copy, but will save memory.
-    frame : int, optional
-        Use this option to load only a single frame from a trajectory on disk.
-        If frame is None, the default, the entire trajectory will be loaded.
-        If supplied, ``stride`` will be ignored.
-
-    Returns
-    -------
-    trajectory : md.Trajectory
-        The resulting trajectory, as an md.Trajectory object.
-
-    See Also
-    --------
-    biotraj.NetCDFTrajectoryFile :  Low level interface to NetCDF files
-    """
-    from biotraj.core.trajectory import _parse_topology
-
-    if top is None:
-        raise ValueError('"top" argument is required for load_netcdf')
-
-    topology = _parse_topology(top)
-    atom_indices = cast_indices(atom_indices)
-
-    with NetCDFTrajectoryFile(filename) as f:
-        if frame is not None:
-            f.seek(frame)
-            n_frames = 1
-        else:
-            n_frames = None
-
-        return f.read_as_traj(
-            topology,
-            n_frames=n_frames,
-            atom_indices=atom_indices,
-            stride=stride,
-        )
-
-
-@FormatRegistry.register_fileobject(".nc")
-@FormatRegistry.register_fileobject(".netcdf")
-@FormatRegistry.register_fileobject(".ncdf")
 class NetCDFTrajectoryFile:
     """Interface for reading and writing to AMBER NetCDF files. This is a
     file-like object, that supports both reading or writing depending
@@ -206,62 +140,6 @@ class NetCDFTrajectoryFile:
     def _validate_open(self):
         if self._closed:
             raise OSError("The file is closed.")
-
-    def read_as_traj(self, topology, n_frames=None, stride=None, atom_indices=None):
-        """Read a trajectory from a NetCDF file
-
-        Parameters
-        ----------
-        topology : Topology
-            The system topology
-        n_frames : int, optional
-            If positive, then read only the next `n_frames` frames. Otherwise read all
-            of the frames in the file.
-        stride : np.ndarray, optional
-            Read only every stride-th frame.
-        atom_indices : array_like, optional
-            If not none, then read only a subset of the atoms coordinates from the
-            file. This may be slightly slower than the standard read because it required
-            an extra copy, but will save memory.
-
-        Returns
-        -------
-        trajectory : Trajectory
-            A trajectory object containing the loaded portion of the file.
-        """
-        from biotraj.core.trajectory import Trajectory
-
-        if atom_indices is not None:
-            topology = topology.subset(atom_indices)
-
-        xyz, time, cell_lengths, cell_angles = self.read(
-            n_frames=n_frames,
-            stride=stride,
-            atom_indices=atom_indices,
-        )
-        if len(xyz) == 0:
-            return Trajectory(xyz=np.zeros((0, topology.n_atoms, 3)), topology=topology)
-
-        xyz = in_units_of(
-            xyz,
-            self.distance_unit,
-            Trajectory._distance_unit,
-            inplace=True,
-        )
-        cell_lengths = in_units_of(
-            cell_lengths,
-            self.distance_unit,
-            Trajectory._distance_unit,
-            inplace=True,
-        )
-
-        return Trajectory(
-            xyz=xyz,
-            topology=topology,
-            time=time,
-            unitcell_lengths=cell_lengths,
-            unitcell_angles=cell_angles,
-        )
 
     def read(self, n_frames=None, stride=None, atom_indices=None):
         """Read data from a molecular dynamics trajectory in the AMBER NetCDF
@@ -417,11 +295,6 @@ class NetCDFTrajectoryFile:
             raise OSError(
                 "The file was opened in mode=%s. Writing is not allowed." % self._mode,
             )
-
-        coordinates = in_units_of(coordinates, None, "angstroms")
-        time = in_units_of(time, None, "picoseconds")
-        cell_lengths = in_units_of(cell_lengths, None, "angstroms")
-        cell_angles = in_units_of(cell_angles, None, "degrees")
 
         # typecheck all of the input arguments rigorously
         coordinates = ensure_type(

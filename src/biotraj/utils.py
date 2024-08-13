@@ -1,40 +1,8 @@
-##############################################################################
-# MDTraj: A Python Library for Loading, Saving, and Manipulating
-#         Molecular Dynamics Trajectories.
-# Copyright 2012-2013 Stanford University and the Authors
-#
-# Authors: Robert McGibbon
-# Contributors:
-#
-# MDTraj is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as
-# published by the Free Software Foundation, either version 2.1
-# of the License, or (at your option) any later version.
-#
-# This library is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public
-# License along with MDTraj. If not, see <http://www.gnu.org/licenses/>.
-##############################################################################
-
-
-##############################################################################
-# imports
-##############################################################################
-
 import collections
-import numbers
 import warnings
 from itertools import zip_longest
 
 import numpy as np
-
-##############################################################################
-# functions / classes
-##############################################################################
 
 
 class TypeCastPerformanceWarning(RuntimeWarning):
@@ -161,64 +129,3 @@ def ensure_type(
                 raise error
 
     return val
-
-
-def cast_indices(indices):
-    """Check that ``indices`` are appropriate for indexing an array
-
-    Parameters
-    ----------
-    indices : {None, array_like, slice}
-        If indices is None or slice, it'll just pass through. Otherwise, it'll
-        be converted to a numpy array and checked to make sure it contains
-        unique integers.
-
-    Returns
-    -------
-    value : {slice, np.ndarray}
-        Either a slice or an array of integers, depending on the input type
-    """
-    if indices is None or isinstance(indices, slice):
-        return indices
-
-    if not len(indices) == len(set(indices)):
-        raise ValueError("indices must be unique.")
-
-    out = np.asarray(indices)
-    if not issubclass(out.dtype.type, np.integer):
-        raise ValueError(
-            "indices must be of an integer type. %s is not an integer type" % out.dtype
-        )
-
-    return out
-
-
-def check_random_state(seed):
-    """Turn seed into a np.random.RandomState instance
-
-    Parameters
-    ----------
-    seed : {None, int, RandomState}
-        Seed for a random number generator
-
-    Returns
-    -------
-    randomstate : RandomState
-        If seed is None, return the RandomState singleton used by np.random.
-        If seed is an int, return a new RandomState instance seeded with seed.
-        If seed is already a RandomState instance, return it.
-        Otherwise raise ValueError.
-    """
-    # This code is direcly from the scikit-learn project (sklearn/utils/validation.py)
-    # Authors: Olivier Grisel and Gael Varoquaux and others (please update me)
-    # License: BSD 3 clause
-
-    if seed is None or seed is np.random:
-        return np.random.mtrand._rand
-    if isinstance(seed, (numbers.Integral, np.integer)):
-        return np.random.RandomState(seed)
-    if isinstance(seed, np.random.RandomState):
-        return seed
-    raise ValueError(
-        "%r cannot be used to seed a numpy.random.RandomState" " instance" % seed,
-    )

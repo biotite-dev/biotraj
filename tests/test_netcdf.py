@@ -9,8 +9,7 @@ import numpy as np
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
 
-import biotraj as md
-from biotraj.formats import NetCDFTrajectoryFile
+from biotraj import NetCDFTrajectoryFile
 
 from .util import data_dir
 
@@ -137,26 +136,6 @@ class TestNetCDFNetCDF4:
             assert np.allclose(c, boxlengths)
             assert np.allclose(d, boxangles)
 
-    def test_read_write_no_box(self, pdb_path):
-        xyz = np.random.randn(5, 22, 3)
-        time = np.random.randn(5)
-
-        with NetCDFTrajectoryFile(temp, "w", force_overwrite=True) as f:
-            f.write(xyz, time)
-
-        with NetCDFTrajectoryFile(temp) as f:
-            rcoord, rtime, rlengths, rangles = f.read()
-            assert np.allclose(rcoord, xyz)
-            assert np.allclose(rtime, time)
-            assert rlengths is None
-            assert rangles is None
-
-        t = md.load(temp, top=pdb_path)
-
-        # Convert array to float: None -> NaN
-        assert np.all(np.isnan(np.array(t.unitcell_angles, dtype=float)))
-        assert np.all(np.isnan(np.array(t.unitcell_lengths, dtype=float)))
-
     # Test raised error upon addition of box vectors after first writeout
     def test_ragged_box_angles_added_second_write_err(self):
         xyz = np.random.randn(100, 3, 3)
@@ -235,17 +214,6 @@ class TestNetCDFNetCDF4:
             with NetCDFTrajectoryFile(temp, "w", force_overwrite=False) as f:
                 f.write(np.random.randn(10, 5, 3))
 
-    def test_trajectory_save_load(self, pdb_path):
-        t = md.load(pdb_path)
-        t.unitcell_lengths = 1 * np.ones((1, 3))
-        t.unitcell_angles = 90 * np.ones((1, 3))
-
-        t.save(temp)
-        t2 = md.load(temp, top=t.topology)
-
-        assert np.allclose(t.xyz, t2.xyz)
-        assert np.allclose(t.unitcell_lengths, t2.unitcell_lengths)
-
 
 # Separate class for testing the Scipy fallback-version
 class TestNetCDFScipy(TestNetCDFNetCDF4):
@@ -260,42 +228,3 @@ class TestNetCDFScipy(TestNetCDFNetCDF4):
         """Undoing most changes, just in case."""
         monkeypatch = MonkeyPatch()
         monkeypatch.delitem(sys.modules, "netCDF4", None)
-
-
-# TODO: Alternative needed here
-# -> ambertool is not compatible with Numpy >=2.0
-# Separately compiled AmberTools required for now
-@needs_cpptraj
-def test_cpptraj(dcd_frame0_reference_path, pdb_frame0_reference_path):
-    dcd_path = dcd_frame0_reference_path
-    top = pdb_frame0_reference_path
-    trj0 = md.load(dcd_path, top=top)
-    trj0.save(temp)
-
-    # Read trj0 from temp; save trajectory as temp2 with CPPTRAJ
-    subprocess.check_call(
-        [
-            "cpptraj",
-            "-p",
-            top,
-            "-y",
-            temp,
-            "-x",
-            temp2,
-        ],
-    )
-
-    trj1 = md.load(temp, top=top)
-    trj2 = md.load(temp2, top=top)
-
-    assert np.allclose(trj0.xyz, trj2.xyz)
-    assert np.allclose(trj1.xyz, trj2.xyz)
-    assert np.allclose(trj0.unitcell_vectors, trj2.unitcell_vectors)
-    assert np.allclose(
-        trj1.unitcell_vectors,
-        trj2.unitcell_vectors,
-    )
-
-    assert np.allclose(trj0.time, trj1.time)
-    assert np.allclose(trj0.time, trj2.time)
-    assert np.allclose(trj1.time, trj2.time)

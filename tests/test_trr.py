@@ -5,7 +5,7 @@ from os.path import join
 import numpy as np
 import pytest
 
-from biotraj.formats import TRRTrajectoryFile
+from biotraj import TRRTrajectoryFile
 
 from .util import data_dir
 
