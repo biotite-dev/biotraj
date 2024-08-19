@@ -1,9 +1,16 @@
 biotraj
 =======
 
-WIP repository for trajectory file I/O in Biotite to solve issue
-https://github.com/biotite-dev/biotite/issues/613.
+Loading and saving raw data in trajectory formats.
 
-Credit
-------
-This repository mainly contains excerpts from https://github.com/mdtraj/mdtraj.
+This package is small excerpt from https://github.com/mdtraj/mdtraj containing only the
+functionality to read and write trajectory files.
+It is not intended to be used as a separate package, but is a dependency for
+https://github.com/biotite-dev/biotite.
+It is not integrated into the Biotite package directly due to an incompatible license.
+
+Currently supported formats:
+- *XTC*
+- *TRR*
+- *NetCDF*
+- *DCD*

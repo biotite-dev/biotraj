@@ -1,16 +1,12 @@
 import os
-import subprocess
 import sys
 import tempfile
 from os.path import join
 from shutil import which
-
 import numpy as np
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
-
 from biotraj import NetCDFTrajectoryFile
-
 from .util import data_dir
 
 

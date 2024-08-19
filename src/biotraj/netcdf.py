@@ -33,9 +33,7 @@ import os
 import socket
 import warnings
 from datetime import datetime
-
 import numpy as np
-
 from biotraj import version
 from biotraj.utils import ensure_type
 
@@ -78,14 +76,10 @@ class NetCDFTrajectoryFile:
 
             netcdf = scipy.io.netcdf_file
 
-            warning_message = (
-                "Warning: The 'netCDF4' Python package is not installed. MDTraj is using the 'scipy' "
-                "implementation to read and write netCDF files,which can be significantly slower.\n"
-                "For improved performance, consider installing netCDF4. See installation instructions at:\n"
-                "https://unidata.github.io/netcdf4-python/#quick-install"
+            warnings.warn(
+                "The 'netCDF4' Python package is not installed. "
+                "Using the slower 'scipy' implementation as fallback."
             )
-
-            warnings.warn(warning_message)
 
             # input args for scipy.io.netcdf_file
             # AMBER uses the NetCDF3 format, with 64 bit encodings, which
@@ -421,8 +415,8 @@ class NetCDFTrajectoryFile:
             f"CREATED at {datetime.now()} on {socket.gethostname()}",
         )
         setattr(self._handle, "application", "Omnia")
-        setattr(self._handle, "program", "MDTraj")
-        setattr(self._handle, "programVersion", version.short_version)
+        setattr(self._handle, "program", "Biotite")
+        setattr(self._handle, "programVersion", version.__version__)
         setattr(self._handle, "Conventions", "AMBER")
         setattr(self._handle, "ConventionVersion", "1.0")
 

@@ -1,12 +1,9 @@
 import os
 from os import path
 from os.path import join
-
 import numpy as np
 import pytest
-
 from biotraj import TRRTrajectoryFile
-
 from .util import data_dir
 
 

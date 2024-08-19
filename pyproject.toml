@@ -12,7 +12,7 @@ classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: BSD License",
+    "License :: OSI Approved :: GNU Lesser General Public License v2 or later (LGPLv2+)",
     "Natural Language :: English",
     "Operating System :: POSIX :: Linux",
     "Operating System :: MacOS",
@@ -34,6 +34,11 @@ dynamic = ["version"]
 [project.optional-dependencies]
 test = [
   "pytest",
+  "psutil",
+  "netcdf4 >= 1.7.1",
+]
+lint = [
+  "ruff == 0.6.1",
 ]
 
 [project.urls]
@@ -41,27 +46,9 @@ homepage = "https://www.biotite-python.org"
 repository = "https://github.com/biotite-dev/biotraj"
 documentation = "https://www.biotite-python.org"
 
-[tool.ruff]
-exclude = [
-  "*.txt",
-  "*.fasta",
-  "*.fa",
-  "*.fastq",
-  "*.fq",
-  "*.gb",
-  "*.gp",
-  "*.gff",
-  "*.gff3",
-  "*.pdb",
-  "*.cif",
-  "*.bcif",
-  "*.gro",
-  "*.sdf",
-  "*.xtc",
-  "*.mmtf",
-  "*.npz",
-]
-force-exclude = true
+[tool.ruff.lint.per-file-ignores]
+# Force version module to be imported last to emphasize its special role
+"src/biotraj/__init__.py" = ["I001"]
 
 [tool.ruff.lint]
 # pyflakes, pycodestyle isort and varibale naming
@@ -70,28 +57,32 @@ ignore = [
     # In docstrings long lines are often intentional
     # Most other ocassions are caught by the ruff formatter
     "E501",
-    # Due to * imports in `__init__.py` modules
-    "F403",
-    # Additional necessary exceptions to remain comparable with MDTraj
-    "F401",
-    "F405",
-    "N801",
-    "N802",
-    "N803",
-    "N806",
-    "N813",
-    "N815",
-    "N816",
-    "N818",
 ]
 
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "all"
+
 [tool.ruff.lint.isort]
+# No separator lines between import sections
+no-lines-before = [
+    "future",
+    "standard-library",
+    "third-party",
+    "first-party",
+    "local-folder",
+]
+order-by-type = true
 known-first-party = ["biotraj"]
+
+[tool.setuptools_scm]
+version_file = "src/biotraj/version.py"
 
 [build-system]
 requires = [
-    "setuptools",
+    "setuptools>=64",
+    "setuptools_scm>=8",
     "wheel",
     "numpy >= 2.0",
     "Cython >= 3.0"
 ]
+build-backend = "setuptools.build_meta"
