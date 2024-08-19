@@ -418,7 +418,7 @@ class NetCDFTrajectoryFile:
         )
         setattr(self._handle, "application", "Omnia")
         setattr(self._handle, "program", "Biotite")
-        setattr(self._handle, "programVersion", version.short_version)
+        setattr(self._handle, "programVersion", version.__version__)
         setattr(self._handle, "Conventions", "AMBER")
         setattr(self._handle, "ConventionVersion", "1.0")
 

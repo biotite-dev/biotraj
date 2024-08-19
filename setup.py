@@ -3,13 +3,6 @@ from Cython.Build import cythonize
 import numpy as np
 
 
-##########################
-VERSION = "0.1"
-ISRELEASED = False
-__version__ = VERSION
-##########################
-
-
 def get_extensions():
     xtc = Extension(
         "biotraj.xtc",
@@ -70,7 +63,6 @@ except ValueError:
     extensions = get_extensions()
 
 setup(
-    version=__version__,
     zip_safe=False,
     packages=find_packages(where="src"),
     package_dir={"": "src"},

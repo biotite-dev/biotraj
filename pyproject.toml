@@ -90,9 +90,13 @@ ignore = [
 [tool.ruff.lint.isort]
 known-first-party = ["biotraj"]
 
+[tool.setuptools_scm]
+version_file = "src/biotraj/version.py"
+
 [build-system]
 requires = [
-    "setuptools",
+    "setuptools>=64",
+    "setuptools_scm>=8",
     "wheel",
     "numpy >= 2.0",
     "Cython >= 3.0"
