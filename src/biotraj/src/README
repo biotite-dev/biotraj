@@ -17,3 +17,9 @@ Changes from upsteam's xdrfile-1.1.4 include:
  - Bugfix in do_trnheader to return the appropriate error code when reading magic, and properly check the value of the magic in xdrfile_trr.c
  - Bugfix of float exception (divide by zero) in xdrfile.c, see https://github.com/SimTk/mdtraj/issues/616
  - Implemented efficient seeking pattern inspired by xdrlib2 (part of MDAnalysis)
+
+# DCD plugin
+
+`dcdplugin.c` and its included header files originate from the *VMD plugin library*
+and are covered by its license (`dcdplugin.license`), which is also available at
+https://www.ks.uiuc.edu/Research/vmd/plugins/pluginlicense.html.
