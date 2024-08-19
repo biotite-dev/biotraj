@@ -1,6 +1,6 @@
-from setuptools import Extension, find_packages, setup
-from Cython.Build import cythonize
 import numpy as np
+from Cython.Build import cythonize
+from setuptools import Extension, find_packages, setup
 
 
 def get_extensions():
@@ -48,9 +48,10 @@ def get_extensions():
     # Configure NumPy for all of these extensions
     for e in extensions:
         e.include_dirs.append(np.get_include())
-        e.define_macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")]
+        e.define_macros = [("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")]
 
     return extensions
+
 
 try:
     extensions = cythonize(
@@ -66,5 +67,5 @@ setup(
     zip_safe=False,
     packages=find_packages(where="src"),
     package_dir={"": "src"},
-    ext_modules=extensions
+    ext_modules=extensions,
 )

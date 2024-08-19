@@ -33,9 +33,7 @@ import os
 import socket
 import warnings
 from datetime import datetime
-
 import numpy as np
-
 from biotraj import version
 from biotraj.utils import ensure_type
 
