@@ -22,7 +22,7 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Bio-Informatics",
 ]
 dependencies = [
-  "numpy >= 2.0",
+  "numpy >= 1.25",
   "scipy >= 1.13",
 ]
 dynamic = ["version"]
